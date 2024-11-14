@@ -13,11 +13,11 @@ class Level:
         scaled_background = pygame.transform.scale(json_path, (SCREEN_WIDTH * 3, SCREEN_HEIGHT * 3))
         screen.blit(scaled_background, (0, 0))
 
-    def spawn_food_items(self, player):
-        for _ in range(2):
-            food = Items(-100, 100)
-            if player.health <= 1000:
-                self.food_items.append(food)
+    def spawn_food_items(self, screen, player, item_class, x, y):
+        if player.health <= 1000:
+            food = item_class("Images/PNGs/Chicken Leg-Idle.png", (x, y))
+            food.load_animation("Images/PNGs/Chicken Leg-Idle.json")
+            self.food_items.append(food)
 
     def update(self, dt):
         for food in self.food_items:
@@ -29,9 +29,10 @@ class Level:
             
     def check_food_collision(self, player_rect):
         for food in self.food_items:
-            if food.rect.colliderect(player_rect):
-                food.collect()
-
+            print(f"Player Rect: {player_rect}, Food Rect: {food.rect}")
+            if player_rect.colliderect(food.rect):
+                print(f"Collision with food at {food.rect}")
+                food.collected = True
 
     def check_collision(self, player_rect, colliders):
         for collider in colliders:
