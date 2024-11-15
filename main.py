@@ -27,7 +27,7 @@ def main():
     current_level = Level()
     
     #Colliders
-    left_wall = pygame.Rect(-90, 0, 5, SCREEN_HEIGHT * 3)
+    left_wall = pygame.Rect(-5, 0, 5, SCREEN_HEIGHT * 3)
     ground = pygame.Rect(0, SCREEN_HEIGHT * 3 - 140, SCREEN_WIDTH * 3, 5)
     right_wall = RightWall(current_level)
 
@@ -38,11 +38,11 @@ def main():
     }
 
     #Offset for initial position
-    offset_x = -695
-    offset_y = 208
+    offset_x = -870
+    offset_y = 198
 
     #Load player idle
-    rogue = Rogue("Images/PNGs/Rogue-Idle.json", (offset_x, offset_y))
+    rogue = Rogue("Images/PNGs/Smaller rogue animations-Smaller Idle.json", (offset_x, offset_y))
 
     #Initial position
     if rogue.scaled_frames:
@@ -88,7 +88,7 @@ def main():
         #Conditional food spawns
         if rogue.health <= 1000:
             print("Spawning food because health is below 1000")
-            current_level.spawn_food_items(screen, rogue, Items, 500, 708)
+            current_level.spawn_food_items(screen, rogue, Items, 500, 764)
 
         #Render and debug food positions
         for food in current_level.food_items:

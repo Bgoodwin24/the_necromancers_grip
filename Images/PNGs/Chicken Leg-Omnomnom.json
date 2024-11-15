@@ -1,56 +1,56 @@
 { "frames": [
    {
     "filename": "Chicken Leg #Omnomnom 0.aseprite",
-    "frame": { "x": 0, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 0, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 200
    },
    {
     "filename": "Chicken Leg #Omnomnom 1.aseprite",
-    "frame": { "x": 32, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 24, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 100
    },
    {
     "filename": "Chicken Leg #Omnomnom 2.aseprite",
-    "frame": { "x": 64, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 48, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 100
    },
    {
     "filename": "Chicken Leg #Omnomnom 3.aseprite",
-    "frame": { "x": 96, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 72, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 100
    },
    {
     "filename": "Chicken Leg #Omnomnom 4.aseprite",
-    "frame": { "x": 128, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 96, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 100
    },
    {
     "filename": "Chicken Leg #Omnomnom 5.aseprite",
-    "frame": { "x": 160, "y": 0, "w": 32, "h": 48 },
+    "frame": { "x": 120, "y": 0, "w": 24, "h": 34 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 },
-    "sourceSize": { "w": 32, "h": 48 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 34 },
+    "sourceSize": { "w": 24, "h": 34 },
     "duration": 200
    }
  ],
@@ -59,7 +59,7 @@
   "version": "1.3.9.2-x64",
   "image": "Chicken Leg-Omnomnom.png",
   "format": "RGBA8888",
-  "size": { "w": 192, "h": 48 },
+  "size": { "w": 144, "h": 34 },
   "scale": "1"
  }
 }

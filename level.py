@@ -56,7 +56,7 @@ class Level:
     
 class RightWall:
     def __init__(self, level):
-        self.rect = pygame.Rect(SCREEN_WIDTH * 3 + 430, 0, 1, SCREEN_HEIGHT * 3)
+        self.rect = pygame.Rect(SCREEN_WIDTH * 3 + 5, 0, 1, SCREEN_HEIGHT * 3)
         self.level = level
 
     def can_pass(self, player):
