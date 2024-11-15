@@ -61,6 +61,9 @@ def main():
 
     #Game Loop
     while run:
+
+        print(f"Player health: {rogue.health}")
+
         #Fps control
         dt = clock.tick(60) / 1000.0
         
@@ -69,33 +72,41 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
 
+        #Clear screen
         screen.fill((0, 0, 0))
 
         #Movement input
         keys = pygame.key.get_pressed()
 
+        #Update player postion and rect
         x_pos, y_pos = rogue.handle_movement(keys, x_pos, y_pos, colliders, dt)
         rogue.rect = pygame.Rect(x_pos, y_pos, rogue.scaled_frames[0][0].get_width(), rogue.scaled_frames[0][0].get_height())
 
-        screen.blit(rogue.image, rogue.rect)
-
         #Draw background
         current_level.draw_level(screen, background1)
+
+        #Conditional food spawns
+        if rogue.health <= 1000:
+            print("Spawning food because health is below 1000")
+            current_level.spawn_food_items(screen, rogue, Items, 500, 708)
+
+        #Render and debug food positions
+        for food in current_level.food_items:
+            food.draw(screen)
+            print(f"Drawing food: {food.rect.topleft}")
         
         #Update player/level/items
         rogue.update(dt)
         rogue.draw(screen, x_pos, y_pos)
 
-        #Spawn food if needed
-        current_level.spawn_food_items(screen, rogue, Items, 500, 708)
-        
         #Check for collision player/food
         current_level.check_food_collision(rogue.rect)
 
-        #Update level and draw food items
+        #Remove collected items
+        current_level.food_items = [food for food in current_level.food_items if not food.collected]
+
+        #Update level
         current_level.update(dt)
-        for food in current_level.food_items:
-            food.draw(screen)
 
         #Check if player is near right wall to pass to next screen
         if right_wall.can_pass(rogue):

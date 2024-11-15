@@ -9,7 +9,6 @@ class Items:
         self.heal_amount = heal_amount
         self.rect = self.image.get_rect(topleft=self.position)
         self.collected = False
-
         self.sprite_sheet = None
         self.scaled_frames = []
         self.current_frame = 0
@@ -52,7 +51,7 @@ class Items:
             self.scaled_frames.append((scaled_frame, duration))
 
     def update(self, dt):
-        if self.scaled_frames and not self.collected:
+        if self.scaled_frames:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]
             if self.current_time >= frame_duration:
@@ -61,6 +60,7 @@ class Items:
 
     def draw(self, screen):
         if not self.collected:
+            print(f"Drawing food item at {self.rect.topleft}")
             if self.scaled_frames:
                 frame_surface = self.scaled_frames[self.current_frame][0]
                 screen.blit(frame_surface, self.rect.topleft)

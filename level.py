@@ -7,6 +7,7 @@ class Level:
     def __init__(self):
         self.food_items = []
         self.enemies = []
+        self.spawned_positions = set ()
 
     #Draw background and scale
     def draw_level(self, screen, json_path):
@@ -15,9 +16,16 @@ class Level:
 
     def spawn_food_items(self, screen, player, item_class, x, y):
         if player.health <= 1000:
+            for food in self.food_items:
+                if food.position == (x, y):
+                    return
+            print(f"Spawning food at: ({x}, {y})")
             food = item_class("Images/PNGs/Chicken Leg-Idle.png", (x, y))
             food.load_animation("Images/PNGs/Chicken Leg-Idle.json")
             self.food_items.append(food)
+            self.spawned_positions.add((x, y))
+        else:
+            print("Conditions not met for spawning food.")
 
     def update(self, dt):
         for food in self.food_items:
