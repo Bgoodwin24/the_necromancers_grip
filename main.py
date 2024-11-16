@@ -62,8 +62,6 @@ def main():
     #Game Loop
     while run:
 
-        print(f"Player health: {rogue.health}")
-
         #Fps control
         dt = clock.tick(60) / 1000.0
         
@@ -87,26 +85,26 @@ def main():
 
         #Conditional food spawns
         if rogue.health <= 1000:
-            print("Spawning food because health is below 1000")
             current_level.spawn_food_items(screen, rogue, Items, 500, 764)
 
         #Render and debug food positions
         for food in current_level.food_items:
+            food.update(dt)
             food.draw(screen)
-            print(f"Drawing food: {food.rect.topleft}")
         
         #Update player/level/items
         rogue.update(dt)
         rogue.draw(screen, x_pos, y_pos)
 
         #Check for collision player/food
-        current_level.check_food_collision(rogue.rect)
+        current_level.check_food_collision(rogue, rogue.rect)
 
         #Remove collected items
-        current_level.food_items = [food for food in current_level.food_items if not food.collected]
+        current_level.remove_collected_items()
 
         #Update level
         current_level.update(dt)
+        current_level.draw_food(screen)
 
         #Check if player is near right wall to pass to next screen
         if right_wall.can_pass(rogue):

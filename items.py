@@ -9,11 +9,16 @@ class Items:
         self.heal_amount = heal_amount
         self.rect = self.image.get_rect(topleft=self.position)
         self.collected = False
+        self.animation_playing = False
+        self.finished_animation = False
         self.sprite_sheet = None
+        self.scale_factor = 4
+        self.scaled_image = pygame.transform.scale(self.image, 
+                                                   (self.image.get_width() * self.scale_factor, 
+                                                    self.image.get_height() * self.scale_factor))
         self.scaled_frames = []
         self.current_frame = 0
         self.current_time = 0
-        self.scale_factor = 4
 
     def load_animation(self, json_path):
         try:
@@ -51,34 +56,37 @@ class Items:
             self.scaled_frames.append((scaled_frame, duration))
 
     def update(self, dt):
-        if self.scaled_frames:
+        if self.animation_playing:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]
             if self.current_time >= frame_duration:
                 self.current_time = 0
                 self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+                if self.current_frame == 0:
+                    self.finished_animation = True
+                    self.animation_playing = False
+                    self.collected = True
 
     def draw(self, screen):
         if not self.collected:
-            print(f"Drawing food item at {self.rect.topleft}")
-            if self.scaled_frames:
-                frame_surface = self.scaled_frames[self.current_frame][0]
-                screen.blit(frame_surface, self.rect.topleft)
+            if self.animation_playing:
+                    frame_surface = self.scaled_frames[self.current_frame][0]
+                    screen.blit(frame_surface, self.rect.topleft)
             else:
-                screen.blit(self.image, self.rect.topleft)
+                screen.blit(self.scaled_image, self.rect.topleft)
     
     def collect(self, player):
-        print(f"Collecting food: {self.rect}")
-        self.collected = True
-        self.switch_animation("Omnomnom", "Images/PNGs/Chicken Leg-Omnomnom.json")
-        player.heal(self.heal_amount)
-        self.level.food_items.remove(self)
+        self.animation_playing = True
+        player.heal(self.heal_amount)   
 
     def check_item_collision(self, player):
         return self.rect.colliderect(player.rect)
     
-    def switch_animation(self, animation_name, json_path):
+    def switch_animation(self, json_path):
         self.load_animation(json_path)
-        self.current_animation = animation_name
         self.current_frame = 0
         self.current_time = 0
+        self.finished_animation = False
+
+    def is_animation_finished(self):
+        return self.finished_animation
