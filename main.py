@@ -27,7 +27,7 @@ def main():
     current_level = Level()
     
     #Colliders
-    left_wall = pygame.Rect(-90, 0, 5, SCREEN_HEIGHT * 3)
+    left_wall = pygame.Rect(-5, 0, 5, SCREEN_HEIGHT * 3)
     ground = pygame.Rect(0, SCREEN_HEIGHT * 3 - 140, SCREEN_WIDTH * 3, 5)
     right_wall = RightWall(current_level)
 
@@ -38,11 +38,11 @@ def main():
     }
 
     #Offset for initial position
-    offset_x = -695
-    offset_y = 208
+    offset_x = -870
+    offset_y = 198
 
     #Load player idle
-    rogue = Rogue("Images/PNGs/Rogue-Idle.json", (offset_x, offset_y))
+    rogue = Rogue("Images/PNGs/Smaller rogue animations-Smaller Idle.json", (offset_x, offset_y))
 
     #Initial position
     if rogue.scaled_frames:
@@ -61,8 +61,6 @@ def main():
 
     #Game Loop
     while run:
-
-        print(f"Player health: {rogue.health}")
 
         #Fps control
         dt = clock.tick(60) / 1000.0
@@ -87,26 +85,26 @@ def main():
 
         #Conditional food spawns
         if rogue.health <= 1000:
-            print("Spawning food because health is below 1000")
-            current_level.spawn_food_items(screen, rogue, Items, 500, 708)
+            current_level.spawn_food_items(screen, rogue, Items, 500, 764)
 
         #Render and debug food positions
         for food in current_level.food_items:
+            food.update(dt)
             food.draw(screen)
-            print(f"Drawing food: {food.rect.topleft}")
         
         #Update player/level/items
         rogue.update(dt)
         rogue.draw(screen, x_pos, y_pos)
 
         #Check for collision player/food
-        current_level.check_food_collision(rogue.rect)
+        current_level.check_food_collision(rogue, rogue.rect)
 
         #Remove collected items
-        current_level.food_items = [food for food in current_level.food_items if not food.collected]
+        current_level.remove_collected_items()
 
         #Update level
         current_level.update(dt)
+        current_level.draw_food(screen)
 
         #Check if player is near right wall to pass to next screen
         if right_wall.can_pass(rogue):

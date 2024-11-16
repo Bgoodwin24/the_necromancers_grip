@@ -81,7 +81,7 @@ class Rogue(Entity):
     def __init__(self, json_path, position):
         super().__init__(json_path, PLAYER_RADIUS)
         self.position = pygame.Vector2(position)
-        self.image = pygame.image.load("Images/PNGs/Rogue-Idle.png")
+        self.image = pygame.image.load("Images/PNGs/Smaller rogue animations-Smaller Idle.png")
         self.current_animation = "idle"
         self.health = 1000
         self.max_health = 2000
@@ -105,18 +105,18 @@ class Rogue(Entity):
         #Left
         if keys[pygame.K_a]:
             if self.current_animation != "Run Left":
-                self.switch_animation("Run Left", "Images/PNGs/Rogue-Run Left.json")
+                self.switch_animation("Run Left", "Images/PNGs/Small rogue animations-Small Run left.json")
             new_x_pos -= movement_speed * dt
     
         #Right
         elif keys[pygame.K_d]:
             if self.current_animation != "Run":
-                self.switch_animation("Run", "Images/PNGs/Rogue-Run.json")
+                self.switch_animation("Run", "Images/PNGs/Small rogue animations-Small Run.json")
             new_x_pos += movement_speed * dt
 
         else:
             if self.current_animation != "Idle":
-                self.switch_animation("Idle", "Images/PNGs/Rogue-Idle.json")
+                self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
 
         #Attack
         #if keys[pygame.K_SPACE]:
@@ -126,7 +126,7 @@ class Rogue(Entity):
         for event in pygame.event.get():
             if event.type == pygame.KEYUP:
                 if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
-                    self.switch_animation("Idle", "Images/PNGs/Rogue-Idle.json")
+                    self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
 
         #Get width and height of current frame
         if self.scaled_frames:

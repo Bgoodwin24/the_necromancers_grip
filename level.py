@@ -19,13 +19,10 @@ class Level:
             for food in self.food_items:
                 if food.position == (x, y):
                     return
-            print(f"Spawning food at: ({x}, {y})")
             food = item_class("Images/PNGs/Chicken Leg-Idle.png", (x, y))
             food.load_animation("Images/PNGs/Chicken Leg-Idle.json")
             self.food_items.append(food)
             self.spawned_positions.add((x, y))
-        else:
-            print("Conditions not met for spawning food.")
 
     def update(self, dt):
         for food in self.food_items:
@@ -34,13 +31,55 @@ class Level:
     def draw_food(self, screen):
         for food in self.food_items:
             food.draw(screen)
+
+    def switch_animation(self, json_path):
+        self.load_animation(json_path)
+        self.current_frame = 0
+        self.current_time = 0
+
+    def load_animation(self, json_path):
+        try:
+            with open(json_path, "r") as f:
+                animation_data = json.load(f)
+        except FileNotFoundError:
+            print(f"Error: Could not find animation data file at path: {json_path}")
+            return
+
+        #Extract relevant data
+        frames_data = animation_data["frames"]
+        sprite_sheet_path = animation_data["meta"]["image"]
+
+        sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
+
+        #Load sprite sheet
+        try:
+            self.sprite_sheet = pygame.image.load(sprite_sheet_path)
+        except pygame.error as e:
+            print(f"Error loading sprite sheet: {sprite_sheet_path}: {e}")
+            return
+
+        #Extract and process frames
+        self.scaled_frames = []
+        for frame_data in frames_data:
+            x = frame_data["frame"]["x"]
+            y = frame_data["frame"]["y"]
+            w = frame_data["frame"]["w"]
+            h = frame_data["frame"]["h"]
+            duration = frame_data["duration"]
+            frame = self.sprite_sheet.subsurface(pygame.Rect(x, y, w , h))
+            scaled_frame = pygame.transform.scale(
+                frame, (frame.get_width() * self.scale_factor, frame.get_height() * self.scale_factor)
+            )
+            self.scaled_frames.append((scaled_frame, duration))
             
-    def check_food_collision(self, player_rect):
+    def check_food_collision(self, player, player_rect):
         for food in self.food_items:
-            print(f"Player Rect: {player_rect}, Food Rect: {food.rect}")
-            if player_rect.colliderect(food.rect):
-                print(f"Collision with food at {food.rect}")
-                food.collected = True
+            if player_rect.colliderect(food.rect) and not food.collected:
+                food.collect(player)
+                food.switch_animation("Images/PNGs/Chicken Leg-Omnomnom.json")
+    
+    def remove_collected_items(self):
+        self.food_items = [food for food in self.food_items if not food.collected or not food.finished_animation]
 
     def check_collision(self, player_rect, colliders):
         for collider in colliders:
@@ -56,7 +95,7 @@ class Level:
     
 class RightWall:
     def __init__(self, level):
-        self.rect = pygame.Rect(SCREEN_WIDTH * 3 + 430, 0, 1, SCREEN_HEIGHT * 3)
+        self.rect = pygame.Rect(SCREEN_WIDTH * 3 + 5, 0, 1, SCREEN_HEIGHT * 3)
         self.level = level
 
     def can_pass(self, player):
