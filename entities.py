@@ -17,17 +17,60 @@ class Entity:
         self.alive = True
         self.load_animation(json_path)
         
-        #Load json animation data
+    #Load json animation data
     def load_animation(self, json_path):
-        pass
+        try:
+            with open(json_path, "r") as f:
+                animation_data = json.load(f)
+        except FileNotFoundError:
+            print(f"Error: Could not find animation data file at path: {json_path}")
+            return
+
+        #Extract relevant data
+        frames_data = animation_data["frames"]
+        sprite_sheet_path = animation_data["meta"]["image"]
+        sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
+
+        #Load sprite sheet
+        try:
+            self.sprite_sheet = pygame.image.load(sprite_sheet_path)
+        except pygame.error as e:
+            print(f"Error loading sprite sheet: {sprite_sheet_path}: {e}")
+            return
+
+        #Extract and process frames
+        frames = []
+        for frame_data in frames_data:
+            x = frame_data["frame"]["x"]
+            y = frame_data["frame"]["y"]
+            w = frame_data["frame"]["w"]
+            h = frame_data["frame"]["h"]
+            duration = frame_data["duration"]
+            frame = self.sprite_sheet.subsurface(pygame.Rect(x, y, w , h))
+            frames.append((frame, duration))
+
+        #Scaling
+        self.scale_factor = 4
+        self.scaled_frames = []
+        for frame, duration in frames:
+            scaled_frame = pygame.transform.scale(frame, (frame.get_width() * self.scale_factor, frame.get_height() * self.scale_factor))
+            self.scaled_frames.append((scaled_frame, duration))
+
+    def check_attack_collision(self, other):
+         return self.position.distance_to(other.position) <= self.radius + other.radius
 
     def take_damage(self, damage_amount):
         self.health -= damage_amount
-        if self.health <=0:
+        #Ensure health never goes below zero
+        self.health = max(0, self.health)
+        if self.health == 0:
+            print("Game over, better luck next time!")
             self.die()
 
     def die(self, json_path):
-        pass
+        pygame.image.load(json_path)
+        self.alive = False
+        print(f"Oh no! {self.__class__.__name__} has died!")
 
     def cleanup(self):
         pass
@@ -61,6 +104,7 @@ class Entity:
         self.current_frame = 0
         self.current_time = 0
 
+    #Gets player size(rect)
     def get_rect(self, x, y):
         if self.scaled_frames:
             frame_surface = self.scaled_frames[self.current_frame][0]
@@ -72,9 +116,6 @@ class Entity:
             if player_rect.colliderect(collider):
                 return True
         return False
-    
-    def check_attack_collision(self, other):
-         return self.position.distance_to(other.position) <= self.radius + other.radius
 
 #Actual player class for this game
 class Rogue(Entity):
@@ -83,7 +124,7 @@ class Rogue(Entity):
         self.position = pygame.Vector2(position)
         self.image = pygame.image.load("Images/PNGs/Smaller rogue animations-Smaller Idle.png")
         self.current_animation = "idle"
-        self.health = 1000
+        self.health = 2000
         self.max_health = 2000
         self.attack = 250
 
@@ -119,8 +160,8 @@ class Rogue(Entity):
                 self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
 
         #Attack
-        #if keys[pygame.K_SPACE]:
-            #pass
+        if keys[pygame.K_SPACE]:
+            pass
 
         #Process key release events
         for event in pygame.event.get():
@@ -137,6 +178,7 @@ class Rogue(Entity):
             frame_width = 0
             frame_height = 0
 
+        #Ensure frame width and frame height are numeric
         frame_width = float(frame_width) if frame_width else 0
         frame_height = float(frame_height) if frame_height else 0
 
@@ -156,62 +198,6 @@ class Rogue(Entity):
         self.health += heal_amount
         #Cap health at max
         self.health = min(self.health, self.max_health)
-
-    def take_damage(self, damage_amount):
-        super().take_damage(damage_amount)
-        if not self.alive:
-            print("Game over, better luck next time!")
-            pygame.quit()
-
-    def die(self, json_path):
-        pygame.image.load(json_path)
-        self.alive = False
-        print(f"Oh no! {self.__class__.__name__} has died!")
-        
-
-    #Load json animation data
-    def load_animation(self, json_path):
-        try:
-            with open(json_path, "r") as f:
-                animation_data = json.load(f)
-        except FileNotFoundError:
-            print(f"Error: Could not find animation data file at path: {json_path}")
-            return
-
-        #Extract relevant data
-        frames_data = animation_data["frames"]
-        sprite_sheet_path = animation_data["meta"]["image"]
-
-        sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
-
-        #Load sprite sheet
-        try:
-            self.sprite_sheet = pygame.image.load(sprite_sheet_path)
-        except pygame.error as e:
-            print(f"Error loading sprite sheet: {sprite_sheet_path}: {e}")
-            return
-
-        #Extract and process frames
-        frames = []
-        for frame_data in frames_data:
-            x = frame_data["frame"]["x"]
-            y = frame_data["frame"]["y"]
-            w = frame_data["frame"]["w"]
-            h = frame_data["frame"]["h"]
-            duration = frame_data["duration"]
-            frame = self.sprite_sheet.subsurface(pygame.Rect(x, y, w , h))
-            frames.append((frame, duration))
-
-        #Scaling
-        self.scale_factor = 4
-        self.scaled_frames = []
-        for frame, duration in frames:
-            scaled_frame = pygame.transform.scale(frame, (frame.get_width() * self.scale_factor, frame.get_height() * self.scale_factor))
-            self.scaled_frames.append((scaled_frame, duration))
-
-    def check_attack_collision(self, enemy):
-        if self.position.distance_to(enemy.position) <= self.radius + enemy.radius:
-            enemy.health -= self.attack
 
 #def cleanup(self):
     #if self in self.level.enemies:

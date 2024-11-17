@@ -31,7 +31,6 @@ class Items:
         #Extract relevant data
         frames_data = animation_data["frames"]
         sprite_sheet_path = animation_data["meta"]["image"]
-
         sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
 
         #Load sprite sheet

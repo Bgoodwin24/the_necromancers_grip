@@ -15,6 +15,7 @@ from constants import *
 def main():
     pygame.init()
 
+    #Set screen/window caption/clock
     screen = pygame.display.set_mode((SCREEN_WIDTH * 3, SCREEN_HEIGHT * 3))
     pygame.display.set_caption("The Necromancers Grip")
     clock = pygame.time.Clock()
@@ -53,12 +54,6 @@ def main():
 
     run = True
 
-    def check_collision(player_rect, colliders):
-        for collider in colliders:
-            if player_rect.colliderect(collider):
-                return True
-        return False
-
     #Game Loop
     while run:
 
@@ -76,6 +71,13 @@ def main():
         #Movement input
         keys = pygame.key.get_pressed()
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            elif event.type == pygame.KEYUP:
+                if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
+                    rogue.switch_to_preloaded_animation("idle")
+
         #Update player postion and rect
         x_pos, y_pos = rogue.handle_movement(keys, x_pos, y_pos, colliders, dt)
         rogue.rect = pygame.Rect(x_pos, y_pos, rogue.scaled_frames[0][0].get_width(), rogue.scaled_frames[0][0].get_height())
@@ -86,6 +88,10 @@ def main():
         #Conditional food spawns
         if rogue.health <= 1000:
             current_level.spawn_food_items(screen, rogue, Items, 500, 764)
+
+        #Entity Deaths
+        if rogue.health == 0:
+            rogue.die("Images/PNGs/Rogue-Death.json")
 
         #Render and debug food positions
         for food in current_level.food_items:
