@@ -76,7 +76,7 @@ def main():
                 run = False
             elif event.type == pygame.KEYUP:
                 if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
-                    rogue.switch_to_preloaded_animation("idle")
+                    rogue.switch_animation("Idle", "Image/PNGs/Smaller rogue animations-Smaller Idle.json")
 
         #Update player postion and rect
         x_pos, y_pos = rogue.handle_movement(keys, x_pos, y_pos, colliders, dt)

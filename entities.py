@@ -15,6 +15,8 @@ class Entity:
         self.current_frame = 0
         self.current_time = 0
         self.alive = True
+        self.attack_start_position = None
+        self.is_attacking = False
         self.load_animation(json_path)
         
     #Load json animation data
@@ -78,31 +80,63 @@ class Entity:
     def update(self, dt):
         if not self.alive:
             return
-        
+        # Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
-
             frame_duration = self.scaled_frames[self.current_frame][1]
-
+            #Check if we should advance the frame
             if self.current_time >= frame_duration:
                 self.current_time = 0
                 self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+                #Reset the attack position if the attack animation completes
+                if self.current_animation == "Attack" and self.current_frame == 0:
+                    self.is_attacking = False
+                    self.attack_start_position = None
+                    self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+                elif self.current_animation == "Attack Left" and self.current_frame == 0:
+                    self.is_attacking = False
+                    self.attack_start_position = None
+                    self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+
+    #Return default attack position, can be overwritten by children
+    def get_attack_position(self, screen):
+        if self.attack_start_position is None:
+            print("Error: Attack start position is not set")
+            return 0, 0
+        attack_x, attack_y = self.attack_start_position.x, self.attack_start_position.y
+        return attack_x, attack_y
 
     def draw(self, screen, x, y):
         if not self.alive:
-            return
-            
-        if self.scaled_frames:
-            frame_surface, frame_duration = self.scaled_frames[self.current_frame]
-            screen.blit(frame_surface, (x, y))
+            return    
+        #If attacking use stored attack position
+        if self.current_animation == "Attack" or self.current_animation == "Attack Left" and self.attack_start_position:
+            attack_x, attack_y = self.get_attack_position(screen)
+            attack_y += 80
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                screen.blit(frame_surface, (attack_x, attack_y))
         else:
-            print("No frames to draw.")
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                screen.blit(frame_surface, (x, y))
 
     def switch_animation(self, animation_name, json_path):
         self.load_animation(json_path)
         self.current_animation = animation_name
         self.current_frame = 0
         self.current_time = 0
+
+        if animation_name == "Attack" or animation_name == "Attack Left":
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                self.frame_width = frame_surface.get_width()
+                self.frame_height = frame_surface.get_height()
+        else:
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[0]
+                self.frame_width = frame_surface.get_width()
+                self.frame_height = frame_surface.get_height()
 
     #Gets player size(rect)
     def get_rect(self, x, y):
@@ -128,6 +162,7 @@ class Rogue(Entity):
         self.max_health = 2000
         self.attack = 250
 
+        #Initial frame size setup
         if self.scaled_frames:
             frame_surface = self.scaled_frames[self.current_frame][0]
             self.frame_width = frame_surface.get_width()
@@ -138,6 +173,15 @@ class Rogue(Entity):
 
         self.rect = pygame.Rect(self.position.x, self.position.y, self.frame_width, self.frame_height)
 
+    def get_attack_position(self, screen):
+        if self.attack_start_position is None:
+            print("Error: Attack start position is not set")
+            return 0, 0
+        attack_x, attack_y = self.attack_start_position.x, self.attack_start_position.y
+        attack_x -= 43
+        attack_y += 0
+        return attack_x, attack_y
+    
     def handle_movement(self, keys, x_pos, y_pos, colliders, dt):
         new_x_pos = x_pos
         new_y_pos = y_pos
@@ -145,29 +189,57 @@ class Rogue(Entity):
 
         #Left
         if keys[pygame.K_a]:
-            if self.current_animation != "Run Left":
+            if self.current_animation != "Run Left" and not self.is_attacking:
                 self.switch_animation("Run Left", "Images/PNGs/Small rogue animations-Small Run left.json")
             new_x_pos -= movement_speed * dt
+
+            #If attacking and running left switch to attack left
+            if keys[pygame.K_SPACE] and not self.is_attacking:
+                if self.attack_start_position is None:
+                    self.attack_start_position = pygame.Vector2(new_x_pos, new_y_pos)
+                self.switch_animation("Attack Left", "Images/PNGs/Small rogue animations-Small Attack Left-Attack Left.json")
+                self.is_attacking = True
     
         #Right
         elif keys[pygame.K_d]:
-            if self.current_animation != "Run":
+            if self.current_animation != "Run" and not self.is_attacking:
                 self.switch_animation("Run", "Images/PNGs/Small rogue animations-Small Run.json")
             new_x_pos += movement_speed * dt
 
-        else:
-            if self.current_animation != "Idle":
-                self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+            #If attacking and running right switch to attack
+            if keys[pygame.K_SPACE] and not self.is_attacking:
+                if self.attack_start_position is None:
+                    self.attack_start_position = pygame.Vector2(new_x_pos, new_y_pos)
+                self.switch_animation("Attack", "Images/PNGs/Small rogue animations-Small Attack-Attack.json")
+                self.is_attacking = True
 
-        #Attack
-        if keys[pygame.K_SPACE]:
-            pass
+        #Idle
+        if self.current_animation == "Idle" and keys[pygame.K_SPACE] and not self.is_attacking:
+            if self.attack_start_position is None:
+                self.attack_start_position = pygame.Vector2(x_pos, y_pos)
+            self.is_attacking = True
+            if self.current_animation != "Attack":
+                self.switch_animation("Attack", "Images/PNGs/Small rogue animations-Small Attack-Attack.json")
+
+         #Attack
+        if keys[pygame.K_SPACE] and not self.is_attacking:
+            if self.attack_start_position is None:
+                self.attack_start_position = pygame.Vector2(x_pos, y_pos)
+            self.is_attacking = True
+            if self.current_animation != "Attack Left":
+                self.switch_animation("Attack Left", "Images/PNGs/Small rogue animations-Small Attack Left-Attack Left.json")
+
 
         #Process key release events
         for event in pygame.event.get():
             if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
-                    self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+                if event.key in [pygame.K_a, pygame.K_d]:
+                    if not self.is_attacking:
+                        self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+                elif event.key == pygame.K_SPACE:
+                    self.is_attacking = False
+                    if self.current_animation != "Idle":
+                        self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
 
         #Get width and height of current frame
         if self.scaled_frames:
@@ -192,7 +264,7 @@ class Rogue(Entity):
         else:
             print(f"Invalid frame dimensions: width={frame_width}, height={frame_height}")
         
-        return x_pos, y_pos
+        return new_x_pos, new_y_pos
 
     def heal(self, heal_amount):
         self.health += heal_amount
