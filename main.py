@@ -6,6 +6,7 @@ from level import *
 import json
 from items import *
 from constants import *
+from projectiles import *
 
 
     #sprite_sheet_skelton = 
@@ -29,7 +30,7 @@ def main():
     
     #Colliders
     left_wall = pygame.Rect(-5, 0, 5, SCREEN_HEIGHT * 3)
-    ground = pygame.Rect(0, SCREEN_HEIGHT * 3 - 140, SCREEN_WIDTH * 3, 5)
+    ground = pygame.Rect(0, SCREEN_HEIGHT * 3 - 175, SCREEN_WIDTH * 3, 5)
     right_wall = RightWall(current_level)
 
     colliders = {
@@ -39,16 +40,16 @@ def main():
     }
 
     #Offset for initial position
-    offset_x = -870
-    offset_y = 198
+    #offset_x = -870
+    #offset_y = 198
 
     #Load player idle
-    rogue = Rogue("Images/PNGs/Smaller rogue animations-Smaller Idle.json", (offset_x, offset_y))
+    rogue = Rogue("Images/PNGs/Smaller rogue animations-Smaller Idle.json")
 
     #Initial position
     if rogue.scaled_frames:
-        x_pos = (SCREEN_WIDTH * 3 - rogue.scaled_frames[0][0].get_width()) // 2 + offset_x
-        y_pos = (SCREEN_HEIGHT * 3 - rogue.scaled_frames[0][0].get_height()) // 2 + offset_y
+        x_pos = (SCREEN_WIDTH * 3 - rogue.scaled_frames[0][0].get_width()) // 2 - 870
+        y_pos = (SCREEN_HEIGHT * 3 - rogue.scaled_frames[0][0].get_height()) // 2 + 198
     else:
         print("Warning: scaled_frames not initialized.")
 
@@ -64,6 +65,14 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and not rogue.is_attacking:
+                    rogue.is_attacking = True
+                    rogue.projectile_spawned = False
+                    if rogue.current_animation == "Run Left":
+                        rogue.switch_animation("Attack Left", "Images/PNGs/Small rogue animations-Small Attack Left-Attack Left.json")
+                    else:
+                        rogue.switch_animation("Attack", "Images/PNGs/Small rogue animations-Small Attack-Attack.json")
 
         #Clear screen
         screen.fill((0, 0, 0))
@@ -71,15 +80,9 @@ def main():
         #Movement input
         keys = pygame.key.get_pressed()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            elif event.type == pygame.KEYUP:
-                if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
-                    rogue.switch_animation("Idle", "Image/PNGs/Smaller rogue animations-Smaller Idle.json")
-
         #Update player postion and rect
         x_pos, y_pos = rogue.handle_movement(keys, x_pos, y_pos, colliders, dt)
+        print(f"New position: {x_pos}, {y_pos}")
         rogue.rect = pygame.Rect(x_pos, y_pos, rogue.scaled_frames[0][0].get_width(), rogue.scaled_frames[0][0].get_height())
 
         #Draw background
@@ -89,18 +92,43 @@ def main():
         if rogue.health <= 1000:
             current_level.spawn_food_items(screen, rogue, Items, 500, 764)
 
-        #Entity Deaths
-        if rogue.health == 0:
-            rogue.die("Images/PNGs/Rogue-Death.json")
-
         #Render and debug food positions
         for food in current_level.food_items:
             food.update(dt)
             food.draw(screen)
         
         #Update player/level/items
-        rogue.update(dt)
-        rogue.draw(screen, x_pos, y_pos)
+        if rogue.alive:
+            rogue.update(dt)
+            rogue.draw(screen, x_pos, y_pos)
+        else:
+            run = False
+
+        #Update projectiles
+        for projectile in rogue.projectiles:
+            projectile.update(dt)
+            projectile.draw(screen)
+
+            #if rogue.current_animation == "Attack" and projectile.check_collision():
+                    #projectile.switch_animation("Attack Collision", "Images/PNGs/Small rogue animations-Attack Collision-Attack Collision.json")
+            #if rogue.current_animation == "Attack Left" and projectile.check_collision():
+                    #projectile.switch_animation("Attack Collision Left", "Images/PNGs/Small rogue animations-Small Attack Collision Left-Attack Collision Left.json")
+
+            #For boss projectile
+            if projectile.category == "enemy" and projectile.check_collision(rogue):
+                rogue.take_damage(500)
+            elif projectile.category == "friendly":
+                pass
+            #For rogue projectile
+            #if projectile.check_collision(skeleton):
+                #skeleton.take_damage(250)
+            #if projectile.check_collision(spirit):
+                #spirit.take_damage(250)
+            #if skeleton.attack.check_collision(rogue):
+                #rogue.take_damage(334)
+
+            if not projectile.alive:
+                rogue.projectiles.remove(projectile)
 
         #Check for collision player/food
         current_level.check_food_collision(rogue, rogue.rect)
