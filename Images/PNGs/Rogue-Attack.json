@@ -1,0 +1,92 @@
+{ "frames": [
+   {
+    "filename": "Rogue #Attack 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 1.aseprite",
+    "frame": { "x": 175, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 2.aseprite",
+    "frame": { "x": 350, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 3.aseprite",
+    "frame": { "x": 525, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 4.aseprite",
+    "frame": { "x": 700, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 5.aseprite",
+    "frame": { "x": 875, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 6.aseprite",
+    "frame": { "x": 1050, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 7.aseprite",
+    "frame": { "x": 1225, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   },
+   {
+    "filename": "Rogue #Attack 8.aseprite",
+    "frame": { "x": 1400, "y": 0, "w": 175, "h": 96 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 96 },
+    "sourceSize": { "w": 175, "h": 96 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.9.2-x64",
+  "image": "Rogue-Attack.png",
+  "format": "RGBA8888",
+  "size": { "w": 1575, "h": 96 },
+  "scale": "1"
+ }
+}

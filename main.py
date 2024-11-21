@@ -80,6 +80,13 @@ def main():
         #Movement input
         keys = pygame.key.get_pressed()
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            elif event.type == pygame.KEYUP:
+                if event.key in [pygame.K_a, pygame.K_d, pygame.K_SPACE]:
+                    rogue.switch_to_preloaded_animation("idle")
+
         #Update player postion and rect
         x_pos, y_pos = rogue.handle_movement(keys, x_pos, y_pos, colliders, dt)
         print(f"New position: {x_pos}, {y_pos}")
@@ -91,6 +98,10 @@ def main():
         #Conditional food spawns
         if rogue.health <= 1000:
             current_level.spawn_food_items(screen, rogue, Items, 500, 764)
+
+        #Entity Deaths
+        if rogue.health == 0:
+            rogue.die("Images/PNGs/Rogue-Death.json")
 
         #Render and debug food positions
         for food in current_level.food_items:
