@@ -1,6 +1,7 @@
 import pygame
 import json
 from entities import *
+import os
 
 class Items:
     def __init__(self, image, position, heal_amount=1000):
