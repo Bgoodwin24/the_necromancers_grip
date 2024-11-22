@@ -192,6 +192,8 @@ class Rogue(Entity):
 
         self.rect = pygame.Rect(self.position.x, self.position.y, self.frame_width, self.frame_height)
 
+        self.category = "friendly"
+
     def set_position(self, x, y):
         self.position.update(x, y)
 
@@ -283,17 +285,30 @@ class Rogue(Entity):
                 velocity = pygame.Vector2(500, 0)
                 proj_path = "Images/PNGs/Small rogue animations-Small Attack Projectile-Attack Projectile.json"
                 projectile = Projectile(attack_x, attack_y, proj_path, velocity, max_distance=200, category="friendly")
+                self.projectiles.append(projectile)
                 self.is_attacking = False
             elif self.current_animation == "Attack Left":
                 velocity = pygame.Vector2(-500, 0)
                 proj_path = "Images/PNGs/Small rogue animations-Small Attack Projectile Left-Attack Projectile Left.json"
                 projectile = Projectile(attack_x - 400, attack_y, proj_path, velocity, max_distance=150, category="friendly")
+                self.projectiles.append(projectile)
                 self.is_attacking = False
-            self.projectiles.append(projectile)
             self.projectile_spawned = True
 
     def update(self, dt):
         super().update(dt)
+
+        #Check for projectiles hitting entity
+        #for projectile in self.projectiles:
+            #if self.rect.colliderect(projectile.rect):
+                #Check if projectile is friendly and colliding with enemy
+                #if self.category == "friendly" and projectile.category == "enemy":
+                    #self.take_damage(projectile.damage)
+                    #projectile.alive = False
+                #Check if projectile is enemy and colliding with friendly
+                #elif self.category == "enemy" and projectile.category == "friendly":
+                    #self.take_damage(projectile.damage)
+                    #projectile.alive = False
 
         if self.is_attacking:
             attack_x, attack_y = self.get_attack_position(None)
@@ -347,6 +362,138 @@ class Rogue(Entity):
             print("Game over, better luck next time!")
             self.die("Death", "Images/PNGs/Rogue-Death.json")
 
-#def cleanup(self):
-    #if self in self.level.enemies:
-        #self.level.enemies.remove(self)
+class Skeleton(Entity):
+    def __init__(self, json_path, x_pos=0, y_pos=0):
+        super().__init__(json_path, PLAYER_RADIUS)
+        self.image = pygame.image.load("Images/PNGs/Skeleton-Idle.png")
+        self.current_animation = "Idle"
+        self.health = 1000
+        self.max_health = 1000
+        self.attack = 334
+
+        self.position = pygame.Vector2(x_pos, y_pos)
+        self.attack_start_position = self.position.copy()
+
+        #Initial frame size setup
+        if self.scaled_frames:
+            frame_surface = self.scaled_frames[self.current_frame][0]
+            self.frame_width = frame_surface.get_width()
+            self.frame_height = frame_surface.get_height()
+        else:
+            self.width = 64
+            self.height = 64
+
+    def get_rect(self):
+        return pygame.Rect(self.position.x, self.position.y, self.frame_width, self.frame_height)
+
+    def set_position(self, x, y):
+        self.position.update(x, y)
+
+    def get_position(self):
+        return self.position.x, self.position.y
+
+    def get_attack_position(self, screen):
+        if self.current_animation == "Attack":
+            attack_x = self.position.x - 50
+        else:
+            attack_x = self.position.x - 50
+
+        attack_y = self.position.y + 80
+        return attack_x, attack_y
+
+    def update(self, dt):
+        super().update(dt)
+        self.rect = self.get_rect()
+            #End attack and allow movement after attack finishes
+        if self.current_frame == len(self.scaled_frames) - 1:
+            self.is_attacking = False
+            self.switch_animation("Idle", "Images/PNGs/Skeleton-Idle.json")
+
+    def draw(self, screen, x_pos, y_pos):
+        if self.is_dying:
+            x_pos, y_pos = self.death_position
+
+        if self.current_animation == "Damaged":
+            x_pos, y_pos = self.position.x, self.position.y
+
+        if not self.alive:
+            return
+
+        # If attacking, use stored attack position
+        if self.current_animation == "Attack":
+            attack_x, attack_y = self.get_attack_position(screen)
+            print(f"Drawing enemy attack at {attack_x}, {attack_y}")
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                screen.blit(frame_surface, (attack_x, attack_y))
+                print(f"Drawing enemy at scaled frames {attack_x}, {attack_y}")
+        else:
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                screen.blit(frame_surface, (x_pos, y_pos))
+                print(f"Drawing enemy at {x_pos}, {y_pos}")
+
+    def take_damage(self, damage_amount):
+        self.switch_animation("Damaged", "Images/PNGs/Skeleton-Damaged.json")
+        self.health -= damage_amount
+        #Ensure health never goes below zero
+        self.health = max(0, self.health)
+        print(f"Enemy took damage at: {self.position}")
+        if self.health == 0:
+            self.die("Death", "Images/PNGs/Skeleton-Death.json")
+
+    def handle_movement(self, keys, x_pos, y_pos, colliders, dt):
+        #handle x,y for run and run left
+        new_x_pos = x_pos
+        new_y_pos = y_pos
+        movement_speed = PLAYER_SPEED
+        self.is_moving = False
+
+        #Lock position during attack
+        if self.is_attacking:
+            return x_pos, y_pos
+        
+        #If not moving switch to idle
+        if not self.is_moving and not self.is_attacking:
+            if self.current_animation != "Idle":
+                self.switch_animation("Idle", "Images/PNGs/Skeleton-Idle.json")
+
+        #Attack
+        if not self.is_attacking:
+            self.is_attacking = True
+            self.projectile_spawned = False
+            self.attack_start_position = self.position.copy()
+            if self.current_animation == "Walk":
+                self.switch_animation("Attack", "Images/PNGs/Skeleton-Attack.json")
+            else:
+                self.switch_animation("Attack Right", "Images/PNGs/Skelton Attack Right-Attack Right.json")
+
+        #Get width and height of current frame
+        if self.scaled_frames:
+            frame_surface = self.scaled_frames[0][0]
+            frame_width = frame_surface.get_width()
+            frame_height = frame_surface.get_height()
+        else:
+            frame_width = 0
+            frame_height = 0
+
+        #Ensure frame width and frame height are numeric
+        frame_width = int(frame_width) if frame_width else 0
+        frame_height = int(frame_height) if frame_height else 0
+
+        #Check collision
+        if not self.check_collision(pygame.Rect(new_x_pos, y_pos, self.frame_width, self.frame_height), colliders):
+            x_pos = new_x_pos
+        if not self.check_collision(pygame.Rect(x_pos, new_y_pos, self.frame_width, self.frame_height), colliders):
+            y_pos = new_y_pos
+        else:
+            print(f"Invalid frame dimensions: width={frame_width}, height={frame_height}")
+        
+        # Update actual position in the skeleton object
+        self.set_position(x_pos, y_pos)
+
+        return x_pos, y_pos
+
+    #def cleanup(self):
+        #if self in self.level.enemies:
+            #self.level.enemies.remove(self)

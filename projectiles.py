@@ -69,15 +69,32 @@ class Projectile:
             frame_surface, _ = self.scaled_frames[self.current_frame]
             screen.blit(frame_surface, self.position)
 
-    def check_collision(self, other):
+    def check_collision(self, target):
         if not self.alive:
             return False
 
         projectile_rect = self.get_rect()
-        if projectile_rect.colliderect(other.get_rect(other.position.x, other.position.y)):
-            self.alive = False
-            return True
-        return False
+
+        #Handle collision based on category
+        #if self.category == "friendly":
+            #if isinstance(target, Rogue) and target.rect.colliderect(projectile_rect):
+                #return False
+            #elif isinstance(target, Skeleton) and target.rect.colliderect(projectile_rect):
+                #self.alive = False
+                #return True
+            #elif isinstance(target, Spirit) and target.rect.colliderect(projectile_rect):
+                #self.alive = False
+                #return True
+        #elif self.category == "enemy":
+            #if isinstance(target, Rogue) and target.rect.colliderect(projectile_rect):
+                #self.alive = False
+                #return True
+            #elif isinstance(target, Skeleton) and target.rect.colliderect(projectile_rect):
+                #return False
+            #elif isinstance(target, Spirit) and target.rect.colliderect(projectile_rect):
+                #return False
+        
+        #return False
     
     def switch_animation(self, animation_name, json_path):
         self.load_animation(json_path)
@@ -97,5 +114,7 @@ class Projectile:
                 self.frame_height = frame_surface.get_height()
 
     def get_rect(self):
-        frame_surface, _ = self.scaled_frames[self.current_frame]
-        return pygame.Rect(self.position.x, self.position.y, frame_surface.get_width(), frame_surface.get_height())
+        if self.scaled_frames:
+            frame_surface, _ = self.scaled_frames[self.current_frame]
+            return pygame.Rect(self.position.x, self.position.y, frame_surface.get_width(), frame_surface.get_height())
+        return pygame.Rect(self.position.x, self.position.y, 0, 0)
