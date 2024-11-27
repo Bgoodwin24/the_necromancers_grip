@@ -73,6 +73,8 @@ class Level:
             
     def check_food_collision(self, player, player_rect):
         for food in self.food_items:
+            if not player.rect:
+                return
             if player_rect.colliderect(food.rect) and not food.collected:
                 food.collect(player)
                 food.switch_animation("Images/PNGs/Chicken Leg-Omnomnom.json")
