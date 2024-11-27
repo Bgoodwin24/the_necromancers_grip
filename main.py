@@ -46,8 +46,8 @@ def main():
         print("Warning: scaled_frames not initialized.")
 
     if skeleton.scaled_frames:
-        skeleton.x_pos = (SCREEN_WIDTH * 3 - skeleton.scaled_frames[0][0].get_width()) // 2 + 925
-        skeleton.y_pos = (SCREEN_HEIGHT * 3 - skeleton.scaled_frames[0][0].get_height()) // 2 + 252
+        skeleton.position.x = (SCREEN_WIDTH * 3 - skeleton.scaled_frames[0][0].get_width()) // 2 + 925
+        skeleton.position.y = (SCREEN_HEIGHT * 3 - skeleton.scaled_frames[0][0].get_height()) // 2 + 240
     else:
         print("Warning: scaled_frames not initialized.")
 
@@ -82,7 +82,8 @@ def main():
         rogue.x_pos, rogue.y_pos = rogue.handle_movement(keys, rogue.x_pos, rogue.y_pos, colliders, dt)
         print(f"New position: {rogue.x_pos}, {rogue.y_pos}")
         rogue.rect = pygame.Rect(rogue.x_pos, rogue.y_pos, rogue.scaled_frames[0][0].get_width(), rogue.scaled_frames[0][0].get_height())
-
+        #Update skeleton rect after its position has been set
+        skeleton.rect = pygame.Rect(skeleton.position.x, skeleton.position.y, skeleton.scaled_frames[0][0].get_width(), skeleton.scaled_frames[0][0].get_height())
         #Draw background
         current_level.draw_level(screen, background1)
 
@@ -90,21 +91,104 @@ def main():
         if rogue.health <= 1000:
             current_level.spawn_food_items(screen, rogue, Items, 500, 764)
 
-        #Entity Deaths
-        if rogue.health == 0:
-            rogue.die("Images/PNGs/Rogue-Death.json")
-        if skeleton.health == 0:
-            skeleton.die("Images/PNGs/Skeleton-Death.json")
+        #Handle collision based on category
+        def check_collision(projectile, target):
+            projectile_rect =  projectile.rect = pygame.Rect(projectile.position.x, projectile.position.y, projectile.scaled_frames[0][0].get_width(), projectile.scaled_frames[0][0].get_height())
 
+            if not projectile.alive:
+                return False
+            
+            if projectile.category == "friendly":
+                    if hasattr(target, 'rect') and target.rect:
+                        if hasattr(target, 'is_rogue') and target.is_rogue and target.alive and target.rect.colliderect(projectile_rect):
+                            return False
+                        if hasattr(target, 'is_skeleton') and target.is_skeleton and target.alive and target.rect.colliderect(projectile_rect):
+                                if not projectile.damage_applied:
+                                    skeleton.take_damage(rogue.attack)
+                                    print(f"Skeleton health: {skeleton.health}/1000")
+                                    projectile.damage_applied = True
+                                if not projectile.playing_collision_animation:
+                                    projectile.switch_attack_animation()
+                                return True
+                        return False
+                        #if hasattr(target, 'is_spirit') and target.is_spirit and target.alive and target.rect.colliderect(projectile_rect):
+                            #projectile.alive = False
+                            #return True
+
+            elif projectile.category == "enemy":
+                if projectile.rect:
+                    if hasattr(target, 'rect') and target.rect:
+                        if hasattr(target, 'is_rogue') and target.is_rogue and target.alive and target.rect.colliderect(projectile_rect):
+                            projectile.alive = False
+                            return True
+                        if hasattr(target, 'is_skeleton') and target.is_skeleton and target.alive and target.rect.colliderect(projectile_rect):
+                            return False
+                        #if hasattr(target, 'is_spirit') and target.is_spirit and target.alive and target.rect.colliderect(projectile_rect):
+                            #return False
+            
+            return False
+
+        #Entity Deaths
+        if rogue.is_dying:
+            rogue.draw(screen, rogue.x_pos, rogue.y_pos)
+            if rogue.current_frame >= len(rogue.scaled_frames) - 1:
+                print("Rogue has finished the Death animation.")
+                rogue.alive = False
+                rogue.is_dying = False
+                rogue.x_pos, rogue.y_pos = rogue.death_position
+                # Don't allow the rogue to continue updating other animations
+        else:  # Only allow animations if the rogue is alive and not dying
+            if rogue.alive:
+                rogue.update(dt)
+                rogue.draw(screen, rogue.x_pos, rogue.y_pos)
+            else:
+                print(f"Rogue is dead, cannot move or animate.")
+
+        if rogue.alive and not rogue.is_dying:
+            if rogue.current_animation not in ["Death", "Idle", "Run", "Run Left", "Attack", "Attack Left", "Damaged"]:
+                rogue.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+                print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
+
+        # Check if skeleton is idle and in range to attack
+        distance_to_player = skeleton.position.x - rogue.x_pos
+        if skeleton.is_attacking:
+            attack_damage_frame = 3
+            if skeleton.current_animation in ["Attack", "Attack Right"]:
+                attack_x, attack_y = skeleton.get_attack_position(screen)
+
+                if not rogue.alive:
+                    skeleton.is_attacking = False
+                    skeleton.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+                    if not skeleton.current_frame >= len(skeleton.scaled_frames) - 1:
+                        skeleton.current_frame += 1
+                if skeleton.current_frame == attack_damage_frame:
+                    if rogue.rect and skeleton.rect.colliderect(rogue.rect) and not skeleton.damage_applied:
+                        print("Skeleton hits the rogue!")
+                        if skeleton.current_frame == 3:
+                            rogue.take_damage(skeleton.attack)
+                            skeleton.damage_applied = True
+
+            if skeleton.current_frame == len(skeleton.scaled_frames) - 1:  # End of animation
+                skeleton.is_attacking = False
+                skeleton.damage_applied = False
+
+        elif rogue.alive:
+            if abs(distance_to_player) < 150 and not skeleton.is_attacking:
+                skeleton.is_attacking = True
+                if skeleton.position.x < rogue.x_pos:
+                        skeleton.facing_direction = "Right"
+                        skeleton.switch_animation("Attack Right", "Images/PNGs/Skeleton Walk Right-Attack Right.json")
+                else:
+                    skeleton.facing_direction = "Left"
+                    skeleton.switch_animation("Attack", "Images/PNGs/Skeleton Walk Right-Attack.json")
+        else:
+            skeleton.is_attacking = False
+            skeleton.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+        
         #Render and debug food positions
         for food in current_level.food_items:
             food.update(dt)
             food.draw(screen)
-
-        #Update enemy
-        if skeleton.alive:
-            skeleton.update(dt)
-            skeleton.draw(screen, skeleton.x_pos, skeleton.y_pos)
 
         #Handle projectile updates
         projectiles_to_remove = []
@@ -113,14 +197,9 @@ def main():
             projectile.draw(screen)
 
             #Collision with skeleton
-            if projectile.check_collision(skeleton):
-                print(f"Projectile hit skeleton at {skeleton.get_position()}")
-                skeleton.take_damage(rogue.attack)
-                projectile.alive = False
+            if check_collision(projectile, skeleton):
                 if rogue.current_animation == "Attack":
-                    projectile.switch_animation("Attack Collision", "Images/PNGs/Small rogue animations-Attack Collision-Attack Collision.json")
-                if rogue.current_animation == "Attack Left":
-                    projectile.switch_animation("Attack Collision Left", "Images/PNGs/Small rogue animations-Small Attack Collision Left-Attack Collision Left.json")
+                    projectile.switch_attack_animation()
             #Mark for removal if not alive
             if not projectile.alive:
                 projectiles_to_remove.append(projectile)
@@ -152,10 +231,15 @@ def main():
 
         #Update player/level/items
         if rogue.alive:
+            print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
             rogue.update(dt)
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
-        else:
-            run = False
+
+        #Update enemy
+        if skeleton.alive:
+            skeleton.update(dt)
+            skeleton.handle_ai(rogue, rogue.position, dt, rogue.rect)
+            skeleton.draw(screen, skeleton.position.x, skeleton.position.y)
 
         #Check if player is near right wall to pass to next screen
         if right_wall.can_pass(rogue):

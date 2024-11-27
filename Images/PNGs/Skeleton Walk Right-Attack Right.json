@@ -1,6 +1,6 @@
 { "frames": [
    {
-    "filename": "Skeleton Walk Right #Walk Right 0.aseprite",
+    "filename": "Skeleton Walk Right #Attack Right 0.aseprite",
     "frame": { "x": 0, "y": 0, "w": 24, "h": 64 },
     "rotated": false,
     "trimmed": false,
@@ -9,7 +9,7 @@
     "duration": 200
    },
    {
-    "filename": "Skeleton Walk Right #Walk Right 1.aseprite",
+    "filename": "Skeleton Walk Right #Attack Right 1.aseprite",
     "frame": { "x": 24, "y": 0, "w": 24, "h": 64 },
     "rotated": false,
     "trimmed": false,
@@ -18,7 +18,7 @@
     "duration": 200
    },
    {
-    "filename": "Skeleton Walk Right #Walk Right 2.aseprite",
+    "filename": "Skeleton Walk Right #Attack Right 2.aseprite",
     "frame": { "x": 48, "y": 0, "w": 24, "h": 64 },
     "rotated": false,
     "trimmed": false,
@@ -27,7 +27,7 @@
     "duration": 200
    },
    {
-    "filename": "Skeleton Walk Right #Walk Right 3.aseprite",
+    "filename": "Skeleton Walk Right #Attack Right 3.aseprite",
     "frame": { "x": 72, "y": 0, "w": 24, "h": 64 },
     "rotated": false,
     "trimmed": false,
@@ -36,17 +36,8 @@
     "duration": 200
    },
    {
-    "filename": "Skeleton Walk Right #Walk Right 4.aseprite",
+    "filename": "Skeleton Walk Right #Attack Right 4.aseprite",
     "frame": { "x": 96, "y": 0, "w": 24, "h": 64 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 64 },
-    "sourceSize": { "w": 24, "h": 64 },
-    "duration": 200
-   },
-   {
-    "filename": "Skeleton Walk Right #Walk Right 5.aseprite",
-    "frame": { "x": 120, "y": 0, "w": 24, "h": 64 },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 24, "h": 64 },
@@ -57,9 +48,9 @@
  "meta": {
   "app": "https://www.aseprite.org/",
   "version": "1.3.10.1-x64",
-  "image": "Skeleton Walk Right-Walk Right.png",
+  "image": "Skeleton Walk Right-Attack Right.png",
   "format": "RGBA8888",
-  "size": { "w": 144, "h": 64 },
+  "size": { "w": 120, "h": 64 },
   "scale": "1"
  }
 }

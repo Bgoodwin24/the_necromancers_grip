@@ -17,6 +17,8 @@ class Projectile:
         self.category = category
         self.distance_traveled = 0
         self.load_animation(json_path)
+        self.playing_collision_animation = False
+        self.damage_applied = False
 
     def load_animation(self, json_path):
         with open(json_path, "r") as f:
@@ -43,12 +45,23 @@ class Projectile:
     def update(self, dt):
         if not self.alive:
             return
+        if self.playing_collision_animation:
+            self.current_time += dt * 1000
+            frame_duration = self.scaled_frames[self.current_frame][1]
+            if self.current_time >= frame_duration:
+                self.current_time = 0
+                self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+                if self.current_frame == 0:
+                    self.alive = False
+                    self.damage_applied = False
+            return
         
         self.current_time += dt * 1000
         frame_duration = self.scaled_frames[self.current_frame][1]
         if self.current_time >= frame_duration:
             self.current_time = 0
             self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+        
         #Update position
         self.position += self.velocity * dt
         self.distance_traveled += self.velocity.length() * dt
@@ -58,43 +71,21 @@ class Projectile:
         
     def check_colliders(self, colliders):
         projectile_rect = self.get_rect()
-        for collider in colliders.values():
+        print(f"Projectile rect: {projectile_rect}")
+        for name, collider in colliders.values():
+            print(f"Checking against collider {name}: {collider}")
             if projectile_rect.colliderect(collider):
                 self.alive = False
+                print(f"Collision detected with {name}")
                 return True
         return False
     
     def draw(self, screen):
-        if self.scaled_frames:
-            frame_surface, _ = self.scaled_frames[self.current_frame]
-            screen.blit(frame_surface, self.position)
+        if self.alive:
+            if self.scaled_frames:
+                frame_surface, _ = self.scaled_frames[self.current_frame]
+                screen.blit(frame_surface, self.position)
 
-    def check_collision(self, target):
-        if not self.alive:
-            return False
-
-        projectile_rect = self.get_rect()
-
-        #Handle collision based on category
-        #if self.category == "friendly":
-            #if isinstance(target, Rogue) and target.rect.colliderect(projectile_rect):
-                #return False
-            #elif isinstance(target, Skeleton) and target.rect.colliderect(projectile_rect):
-                #self.alive = False
-                #return True
-            #elif isinstance(target, Spirit) and target.rect.colliderect(projectile_rect):
-                #self.alive = False
-                #return True
-        #elif self.category == "enemy":
-            #if isinstance(target, Rogue) and target.rect.colliderect(projectile_rect):
-                #self.alive = False
-                #return True
-            #elif isinstance(target, Skeleton) and target.rect.colliderect(projectile_rect):
-                #return False
-            #elif isinstance(target, Spirit) and target.rect.colliderect(projectile_rect):
-                #return False
-        
-        #return False
     
     def switch_animation(self, animation_name, json_path):
         self.load_animation(json_path)
@@ -102,11 +93,10 @@ class Projectile:
         self.current_frame = 0
         self.current_time = 0
 
-        if animation_name == "Attack" or animation_name == "Attack Left":
-            if self.scaled_frames:
-                frame_surface, _ = self.scaled_frames[self.current_frame]
-                self.frame_width = frame_surface.get_width()
-                self.frame_height = frame_surface.get_height()
+        if self.scaled_frames:
+            frame_surface, _ = self.scaled_frames[self.current_frame]
+            self.frame_width = frame_surface.get_width()
+            self.frame_height = frame_surface.get_height()
         else:
             if self.scaled_frames:
                 frame_surface, _ = self.scaled_frames[0]
@@ -116,5 +106,16 @@ class Projectile:
     def get_rect(self):
         if self.scaled_frames:
             frame_surface, _ = self.scaled_frames[self.current_frame]
-            return pygame.Rect(self.position.x, self.position.y, frame_surface.get_width(), frame_surface.get_height())
-        return pygame.Rect(self.position.x, self.position.y, 0, 0)
+            return pygame.Rect(int(self.position.x), int(self.position.y), frame_surface.get_width(), frame_surface.get_height())
+        return pygame.Rect(int(self.position.x), int(self.position.y), 0, 0)
+    
+    def switch_attack_animation(self):
+        #Switches the attack animation based on projectile's direction.
+        if self.velocity.x < 0:
+            self.switch_animation("Attack Collision Left", "Images/PNGs/Small rogue animations-Small Attack Collision Left-Attack Collision Left.json")
+        else:
+            self.switch_animation("Attack Collision", "Images/PNGs/Small rogue animations-Attack Collision-Attack Collision.json")
+        self.playing_collision_animation = True
+        self.current_frame = 0
+        self.current_time = 0
+        self.damage_applied = False
