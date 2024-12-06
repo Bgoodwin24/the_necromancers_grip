@@ -132,12 +132,16 @@ def main():
                 # Specifically handle SpiritProjectile instances
                 if isinstance(projectile, SpiritProjectile):  # Check if it's a SpiritProjectile instance
                     if hasattr(target, 'rect') and target.rect:
-                        if hasattr(target, 'is_rogue') and target.is_rogue and target.alive:
-                            if target.rect.colliderect(projectile_rect) and not projectile.damage_applied:
+                        if hasattr(target, 'is_rogue') and target.is_rogue and target.alive and target.rect.colliderect(projectile_rect):
+                            if target.is_invincible:
+                                return False
+                            if not projectile.damage_applied:
                                 rogue.take_damage(spirit.attack)
                                 projectile.damage_applied = True
                                 print(f"Rogue hit by spirit's projectile! Health: {rogue.health}")
-                                return True
+                            if not projectile.playing_collision_animation:
+                                projectile.switch_spirit_attack_animation()
+                            return True
                         if hasattr(target, 'is_skeleton') and target.is_skeleton and target.alive:
                             return False  # Skeleton should not be hit by enemy projectiles
                         if hasattr(target, 'is_spirit') and target.is_spirit and target.alive:

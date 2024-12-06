@@ -724,6 +724,9 @@ class Spirit(Entity):
             if self.current_frame == 4 and not self.projectile_spawned:
                 attack_x, attack_y = self.get_attack_position(None)
                 self.spawn_projectiles(attack_x, attack_y)
+                self.projectile_spawned = True
+                if self.current_frame <= len(self.scaled_frames) - 1:
+                    self.projectile_spawned = False
             elif self.current_frame >= len(self.scaled_frames) - 1:
                 self.is_attacking = False
                 self.switch_animation("Idle", "Images/PNGs/Small Spirit-Idle.json")
@@ -859,7 +862,7 @@ class Spirit(Entity):
             if self.current_animation in ["Attack", "Idle"] and self.alive:
                 velocity = pygame.Vector2(-500, 0)
                 proj_path = "Images/PNGs/Small Spirit Projectile-Projectile.json"
-                projectile = SpiritProjectile(attack_x - 150, attack_y + 170, proj_path, velocity, max_distance=350, category="enemy")
+                projectile = SpiritProjectile(attack_x - 150, attack_y + 170, proj_path, velocity, max_distance=300, category="enemy")
                 self.alive = True
                 self.projectiles.append(projectile)
                 self.projectile_spawned = True
@@ -867,7 +870,7 @@ class Spirit(Entity):
             elif self.current_animation == "Attack Right":
                 velocity = pygame.Vector2(500, 0)
                 proj_path = "Images/PNGs/Small Spirit Projectile-Projectile Right.json"
-                projectile = SpiritProjectile(attack_x + 160, attack_y + 170, proj_path, velocity, max_distance=350, category="enemy")
+                projectile = SpiritProjectile(attack_x + 160, attack_y + 170, proj_path, velocity, max_distance=300, category="enemy")
                 self.alive = True
                 self.projectiles.append(projectile)
                 self.projectile_spawned = True
