@@ -19,6 +19,7 @@ class Projectile:
         self.load_animation(json_path)
         self.playing_collision_animation = False
         self.damage_applied = False
+        self.rect = self.get_rect()
 
     def load_animation(self, json_path):
         with open(json_path, "r") as f:
@@ -73,15 +74,16 @@ class Projectile:
         projectile_rect = self.get_rect()
         print(f"Projectile rect: {projectile_rect}")
         for name, collider in colliders.values():
-            print(f"Checking against collider {name}: {collider}")
-            if projectile_rect.colliderect(collider):
-                self.alive = False
-                print(f"Collision detected with {name}")
-                return True
+            if self.category == "friendly" and name == "spirit":  # Rogue projectile hitting spirit
+                if projectile_rect.colliderect(collider):
+                    self.alive = False
+                    print(f"Collision detected with {name}")
+                    return True
         return False
     
     def draw(self, screen):
         if self.alive:
+            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             if self.scaled_frames:
                 frame_surface, _ = self.scaled_frames[self.current_frame]
                 screen.blit(frame_surface, self.position)
@@ -116,6 +118,81 @@ class Projectile:
         else:
             self.switch_animation("Attack Collision", "Images/PNGs/Small rogue animations-Attack Collision-Attack Collision.json")
         self.playing_collision_animation = True
+        self.current_frame = 0
+        self.current_time = 0
+        self.damage_applied = False
+
+class SpiritProjectile(Projectile):
+    def __init__(self, x, y, json_path, velocity, max_distance=350, category="enemy"):
+        self.position = pygame.Vector2(x, y)
+        self.velocity = pygame.Vector2(velocity)
+        self.alive = True
+        self.has_spawned = False
+        self.scaled_frames = []
+        self.current_frame = 0
+        self.current_time = 0
+        self.max_distance = max_distance
+        self.category = category
+        self.distance_traveled = 0
+        self.load_animation(json_path)
+        self.playing_collision_animation = False
+        self.damage_applied = False
+        self.rect = self.get_rect()
+        self.distance_traveled = 0
+
+        super().__init__(x, y, json_path, velocity, max_distance, category="enemy")
+
+        if self.scaled_frames:
+            self.image = self.scaled_frames[0][0]  # Grab the image (first frame)
+            
+            # Optionally scale the image if needed
+            self.image = pygame.transform.scale(self.image, (120, 120))  # Set desired width/height
+            self.rect = self.image.get_rect()  # Create the rect based on the scaled image
+            self.rect.topleft = (x, y)  # Set position of the rect
+        
+    def update(self, dt):
+        if not self.alive:
+            return
+        
+        # Update the position based on the velocity
+        self.position.x += self.velocity.x * dt
+        self.position.y += self.velocity.y * dt
+        
+        # Update rect to match position
+        self.rect.x = self.position.x + 150
+        self.rect.y = self.position.y
+
+        # Track the distance traveled
+        self.distance_traveled += self.velocity.length() * dt
+        
+        # If the projectile exceeds its max distance, it should no longer be alive
+        if self.distance_traveled > self.max_distance:
+            self.alive = False
+
+    def draw(self, screen):
+        if self.alive:
+            screen.blit(self.scaled_frames[self.current_frame][0], (self.x, self.y))
+    
+    def check_colliders(self, colliders):
+        projectile_rect = self.get_rect()
+        print(f"Projectile rect: {projectile_rect}")
+        for name, collider in colliders.values():
+            if self.category == "enemy" and name == "rogue":  # Spirit projectile hitting rogue
+                if projectile_rect.colliderect(collider):
+                    self.alive = False
+                    print(f"Collision detected with {name}")
+                    return True
+    
+    def draw(self, screen):
+        super().draw(screen)
+        pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
+
+    def switch_spirit_attack_animation(self):
+        #Switches the attack animation based on projectile's direction.
+        if self.velocity.x < 0:
+            self.switch_animation("Attack Collision", "Images/PNGs/Small Spirit Attack Collision-Attack Collision.json")
+        else:
+            self.switch_animation("Attack Collision", "Images/PNGs/Small Spirit Attack Collision-Attack Collision.json")
         self.current_frame = 0
         self.current_time = 0
         self.damage_applied = False
