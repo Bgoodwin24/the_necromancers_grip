@@ -83,7 +83,6 @@ class Projectile:
     
     def draw(self, screen):
         if self.alive:
-            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             if self.scaled_frames:
                 frame_surface, _ = self.scaled_frames[self.current_frame]
                 screen.blit(frame_surface, self.position)
@@ -201,7 +200,6 @@ class SpiritProjectile(Projectile):
     
     def draw(self, screen):
         if self.alive:
-            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             if self.scaled_frames:
                 frame_surface, _ = self.scaled_frames[self.current_frame]
                 screen.blit(frame_surface, self.position)
