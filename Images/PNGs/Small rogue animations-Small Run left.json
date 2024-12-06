@@ -6,7 +6,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 60, "h": 81 },
     "sourceSize": { "w": 60, "h": 81 },
-    "duration": 100
+    "duration": 200
    },
    {
     "filename": "Small rogue animations #Small Run left 1.aseprite",
@@ -15,7 +15,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 60, "h": 81 },
     "sourceSize": { "w": 60, "h": 81 },
-    "duration": 100
+    "duration": 200
    },
    {
     "filename": "Small rogue animations #Small Run left 2.aseprite",
@@ -24,7 +24,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 60, "h": 81 },
     "sourceSize": { "w": 60, "h": 81 },
-    "duration": 100
+    "duration": 200
    },
    {
     "filename": "Small rogue animations #Small Run left 3.aseprite",
@@ -33,12 +33,12 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 60, "h": 81 },
     "sourceSize": { "w": 60, "h": 81 },
-    "duration": 100
+    "duration": 200
    }
  ],
  "meta": {
   "app": "https://www.aseprite.org/",
-  "version": "1.3.9.2-x64",
+  "version": "1.3.10.1-x64",
   "image": "Small rogue animations-Small Run left.png",
   "format": "RGBA8888",
   "size": { "w": 240, "h": 81 },

@@ -1,0 +1,56 @@
+{ "frames": [
+   {
+    "filename": "Small Spirit #Damaged Right 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "sourceSize": { "w": 91, "h": 107 },
+    "duration": 200
+   },
+   {
+    "filename": "Small Spirit #Damaged Right 1.aseprite",
+    "frame": { "x": 91, "y": 0, "w": 91, "h": 107 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "sourceSize": { "w": 91, "h": 107 },
+    "duration": 200
+   },
+   {
+    "filename": "Small Spirit #Damaged Right 2.aseprite",
+    "frame": { "x": 182, "y": 0, "w": 91, "h": 107 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "sourceSize": { "w": 91, "h": 107 },
+    "duration": 200
+   },
+   {
+    "filename": "Small Spirit #Damaged Right 3.aseprite",
+    "frame": { "x": 273, "y": 0, "w": 91, "h": 107 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "sourceSize": { "w": 91, "h": 107 },
+    "duration": 200
+   },
+   {
+    "filename": "Small Spirit #Damaged Right 4.aseprite",
+    "frame": { "x": 364, "y": 0, "w": 91, "h": 107 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 91, "h": 107 },
+    "sourceSize": { "w": 91, "h": 107 },
+    "duration": 200
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.10.1-x64",
+  "image": "Small Spirit-Damaged Right.png",
+  "format": "RGBA8888",
+  "size": { "w": 455, "h": 107 },
+  "scale": "1"
+ }
+}

@@ -6,7 +6,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 43, "h": 81 },
     "sourceSize": { "w": 43, "h": 81 },
-    "duration": 500
+    "duration": 1000
    },
    {
     "filename": "Smaller rogue animations #Smaller Idle 1.aseprite",
@@ -15,7 +15,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 43, "h": 81 },
     "sourceSize": { "w": 43, "h": 81 },
-    "duration": 500
+    "duration": 1000
    },
    {
     "filename": "Smaller rogue animations #Smaller Idle 2.aseprite",
@@ -24,7 +24,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 43, "h": 81 },
     "sourceSize": { "w": 43, "h": 81 },
-    "duration": 500
+    "duration": 1000
    },
    {
     "filename": "Smaller rogue animations #Smaller Idle 3.aseprite",
@@ -33,12 +33,12 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 43, "h": 81 },
     "sourceSize": { "w": 43, "h": 81 },
-    "duration": 500
+    "duration": 1000
    }
  ],
  "meta": {
   "app": "https://www.aseprite.org/",
-  "version": "1.3.9.2-x64",
+  "version": "1.3.10.1-x64",
   "image": "Smaller rogue animations-Smaller Idle.png",
   "format": "RGBA8888",
   "size": { "w": 172, "h": 81 },
