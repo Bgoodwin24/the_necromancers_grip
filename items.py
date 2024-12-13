@@ -12,6 +12,7 @@ class Items:
         self.collected = False
         self.animation_playing = False
         self.finished_animation = False
+        self.current_animation = "Idle"
         self.sprite_sheet = None
         self.scale_factor = 4
         self.scaled_image = pygame.transform.scale(self.image, 
@@ -59,9 +60,11 @@ class Items:
         if self.animation_playing:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]
+
             if self.current_time >= frame_duration:
                 self.current_time = 0
                 self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+                
                 if self.current_frame == 0:
                     self.finished_animation = True
                     self.animation_playing = False
@@ -74,10 +77,16 @@ class Items:
                     screen.blit(frame_surface, self.rect.topleft)
             else:
                 screen.blit(self.scaled_image, self.rect.topleft)
+        else:
+            # Don't draw the item after it's collected
+            pass
     
     def collect(self, player):
-        self.animation_playing = True
-        player.heal(self.heal_amount)   
+        if not self.collected and not self.animation_playing:
+            self.animation_playing = True
+            print("Animation started for food.")
+            player.heal(self.heal_amount)
+            self.finished_animation = False
 
     def check_item_collision(self, player):
         return self.rect.colliderect(player.rect)
@@ -87,6 +96,7 @@ class Items:
         self.current_frame = 0
         self.current_time = 0
         self.finished_animation = False
+        self.animation_playing = True
 
     def is_animation_finished(self):
         return self.finished_animation

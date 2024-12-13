@@ -87,7 +87,6 @@ class Projectile:
                 frame_surface, _ = self.scaled_frames[self.current_frame]
                 screen.blit(frame_surface, self.position)
 
-    
     def switch_animation(self, animation_name, json_path):
         self.load_animation(json_path)
         self.current_animation = animation_name
