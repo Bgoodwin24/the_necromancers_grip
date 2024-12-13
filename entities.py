@@ -69,6 +69,8 @@ class Entity:
          return self.position.distance_to(other.position) <= self.radius + other.radius
 
     def take_damage(self, damage_amount):
+        if self.is_dying:
+            return
         self.health -= damage_amount
         #Ensure health never goes below zero
         self.health = max(0, self.health)
@@ -190,7 +192,6 @@ class Rogue(Entity):
         self.is_damaged = False
         self.is_invincible = False
         self.has_played_damaged_animation = False
-
         self.position = pygame.Vector2(x_pos, y_pos)
         self.attack_start_position = self.position.copy()
 
@@ -259,9 +260,9 @@ class Rogue(Entity):
             if not self.is_moving and not self.is_attacking and not self.is_damaged:
                 if self.current_animation != "Idle":
                     self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
-
+        
         # Handle attack logic
-        if keys[pygame.K_SPACE] and self.attack_cooldown <= 0 and not self.is_attacking:
+        if keys[pygame.K_SPACE] and self.attack_cooldown <= 0 and not self.is_attacking and not self.is_damaged:
             self.is_attacking = True
             self.projectile_spawned = False
             self.attack_start_position = self.position.copy()
@@ -292,14 +293,12 @@ class Rogue(Entity):
                 velocity = pygame.Vector2(500, 0)
                 proj_path = "Images/PNGs/Small projectile-Attack.json"
                 projectile = Projectile(attack_x + 70, attack_y, proj_path, velocity, max_distance=200, category="friendly")
-                self.alive = True
                 self.projectiles.append(projectile)
                 self.is_attacking = False
-            elif self.current_animation == "Attack Left":
+            elif self.current_animation == "Attack Left" and self.alive:
                 velocity = pygame.Vector2(-500, 0)
                 proj_path = "Images/PNGs/Small projectile-Attack Left.json"
                 projectile = Projectile(attack_x - 120, attack_y, proj_path, velocity, max_distance=200, category="friendly")
-                self.alive = True
                 self.projectiles.append(projectile)
                 self.is_attacking = False
             self.projectile_spawned = True
@@ -309,7 +308,7 @@ class Rogue(Entity):
 
         if self.is_invincible:
             self.invincibility_timer += dt
-            if self.invincibility_timer > 3:
+            if self.invincibility_timer > 2:
                 self.is_invincible = False
                 self.invincibility_timer = 0
 
@@ -358,6 +357,10 @@ class Rogue(Entity):
                     self.switch_animation("Run", "Images/PNGs/Small rogue animations-Small Run.json")
                 else:
                     self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
+            if self.is_invincible and self.is_attacking:
+                if self.current_frame == 5 and not self.projectile_spawned:
+                    attack_x, attack_y = self.get_attack_position(None)
+                    self.spawn_projectiles(attack_x, attack_y)
 
         # Regular animation logic for other states
         if self.current_frame >= len(self.scaled_frames):
@@ -393,6 +396,7 @@ class Rogue(Entity):
     def take_damage(self, damage_amount):
         if not self.is_invincible:
             self.is_damaged = True
+            self.is_attacking = False
             self.is_invincible = True
             self.invincibility_timer = 0
             self.current_frame = 0
@@ -422,6 +426,7 @@ class Skeleton(Entity):
         self.damage_pending = False
         self.is_damaged = False
         self.is_invincible = False
+        self.summoning = False
         self.position = pygame.Vector2(x_pos, y_pos)
         self.attack_start_position = self.position.copy()
 
@@ -458,7 +463,23 @@ class Skeleton(Entity):
         super().update(dt)
         if not self.alive:
             return
+
+        if self.is_dying:
+            if self.current_frame == len(self.scaled_frames) - 1:
+                self.alive = False
+            return
         
+        if self.summoning:
+            if self.current_frame >= len(self.scaled_frames) - 1:
+                self.summoning = False
+                self.switch_animation("Idle", "Images/PNGs/Skeleton-Idle.json")
+            self.position.y = self.ground_y
+            return
+        
+        if self.current_animation == "Summon":
+            self.is_moving = False
+            return
+
         if self.is_invincible:
             self.invincibility_timer += dt
             if self.invincibility_timer > 2:
@@ -484,12 +505,16 @@ class Skeleton(Entity):
                 self.switch_animation("Walk Right", "Images/PNGs/Skeleton Walk Right-Walk Right.json")
                 self.damage_pending = False
     
-    def draw(self, screen, x_pos, y_pos):
+    def draw(self, screen, x_pos, y_pos, target):
         if not self.alive:
             return
         
+        if self.current_animation == "Walk Right" or "Walk":
+            self.position.y += 3
+        
         if self.is_dying:
             x_pos, y_pos = self.death_position
+            self.position.y = 664
 
         if self.current_animation == "Damaged":
             self.position.x + 10
@@ -522,6 +547,9 @@ class Skeleton(Entity):
         self.health -= damage_amount
         # Ensure health never goes below zero
         self.health = max(0, self.health)
+
+        if self.is_dying:
+            return
         
         if self.health > 0:
             # Switch to damaged animation if still alive
@@ -593,7 +621,10 @@ class Skeleton(Entity):
         return x_pos, y_pos
     
     def handle_ai(self, player, player_position, dt, player_rect):
-        if not self.alive:
+        if self.is_dying or not self.alive:
+            return
+
+        if self.summoning:
             return
 
         self.rect = self.get_rect()
@@ -603,7 +634,9 @@ class Skeleton(Entity):
             return
         
         distance = self.position.x - player_position.x
-        attack_range = 80
+        attack_range = 150
+        if self.facing_direction == "Right":
+            attack_range = 80
 
         if not player.alive or player.current_animation == "Death" or player.is_dying:
             self.is_attacking = False
@@ -641,6 +674,18 @@ class Skeleton(Entity):
                 if self.current_animation != "Walk Right":
                     self.switch_animation("Walk Right", "Images/PNGs/Skeleton Walk Right-Walk Right.json")
                 self.position.x += ENEMY_SPEED * dt
+    
+    def switch_animation(self, animation_name, animation_path):
+        if self.is_dying and animation_name != "Death":
+            return
+        super().switch_animation(animation_name, animation_path)
+
+    def reset(self, health):
+        self.health = health
+        self.alive = True
+        self.is_dying = False
+        self.is_damaged = False
+        self.current_animation = "Idle"
                 
     #def cleanup(self):
         #if self in self.level.enemies:
@@ -701,6 +746,11 @@ class Spirit(Entity):
         if not self.alive:
             return
         
+        if self.is_dying:
+            if self.current_frame == len(self.scaled_frames) - 1:
+                self.alive = False
+            return
+        
         if self.is_invincible:
             self.invincibility_timer += dt
             if self.invincibility_timer > 2:
@@ -746,12 +796,13 @@ class Spirit(Entity):
                 self.switch_animation("Walk Right", "Images/PNGs/Small Spirit-Idle Right.json")
                 self.damage_pending = False
     
-    def draw(self, screen, x_pos, y_pos):
+    def draw(self, screen, x_pos, y_pos, target):
         if not self.alive:
             return
         
         if self.is_dying:
             x_pos, y_pos = self.death_position
+            self.position.y = 520
 
         for projectile in self.projectiles:
             projectile.draw(screen)
@@ -883,6 +934,9 @@ class Spirit(Entity):
     def handle_ai(self, player, player_position, dt, player_rect):
         if not self.alive:
             return
+        
+        if self.is_dying or not self.alive:
+            return
             
         self.rect = self.get_rect()
 
@@ -891,7 +945,7 @@ class Spirit(Entity):
             return
             
         distance = self.position.x - player_position.x
-        attack_range = 500
+        attack_range = 600
 
         if not player.alive or player.current_animation == "Death" or player.is_dying:
             self.is_attacking = False
@@ -933,7 +987,149 @@ class Spirit(Entity):
                 if self.current_animation != "Walk Right":
                     self.switch_animation("Walk Right", "Images/PNGs/Small Spirit-Idle Right.json")
                 self.position.x += ENEMY_SPEED * dt
+
+    def switch_animation(self, animation_name, animation_path):
+        if self.is_dying and animation_name != "Death":
+            return
+        super().switch_animation(animation_name, animation_path)
+
+    def reset(self, health):
+        self.health = health
+        self.alive = True
+        self.is_dying = False
+        self.is_damaged = False
+        self.current_animation = "Idle"
         
     #def cleanup(self):
         #if self in self.level.enemies:
             #self.level.enemies.remove(self)
+
+class Arrow(Entity):
+    def __init__(self, json_path, x=1500, y=350):
+        self.x = x
+        self.y = y
+        self.scaled_frames = []
+        self.current_frame = 0
+        self.current_time = 0
+        self.frame_duration = 0
+        self.position = pygame.Vector2(x, y)
+        self.load_animation(json_path)
+
+    def draw(self, screen):
+        if self.scaled_frames:
+            frame_surface, _ = self.scaled_frames[self.current_frame]
+            screen.blit(frame_surface, (self.x, self.y))
+    
+    def update(self, dt):
+        # Update the current frame based on the animation time
+        if self.scaled_frames:
+            self.current_time += dt * 1000
+            frame_duration = self.scaled_frames[self.current_frame][1]
+            #Check if we should advance the frame
+            if self.current_time >= frame_duration:
+                self.current_time = 0
+                self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+
+    #Load json animation data
+    def load_animation(self, json_path):
+        try:
+            with open(json_path, "r") as f:
+                animation_data = json.load(f)
+        except FileNotFoundError:
+            print(f"Error: Could not find animation data file at path: {json_path}")
+            return
+
+        #Extract relevant data
+        frames_data = animation_data["frames"]
+        sprite_sheet_path = animation_data["meta"]["image"]
+        sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
+
+        #Load sprite sheet
+        try:
+            self.sprite_sheet = pygame.image.load(sprite_sheet_path)
+        except pygame.error as e:
+            print(f"Error loading sprite sheet: {sprite_sheet_path}: {e}")
+            return
+
+        #Extract and process frames
+        frames = []
+        for frame_data in frames_data:
+            x = frame_data["frame"]["x"]
+            y = frame_data["frame"]["y"]
+            w = frame_data["frame"]["w"]
+            h = frame_data["frame"]["h"]
+            duration = frame_data["duration"]
+            frame = self.sprite_sheet.subsurface(pygame.Rect(x, y, w , h))
+            frames.append((frame, duration))
+
+        #Scaling
+        self.scale_factor = 6
+        self.scaled_frames = []
+        for frame, duration in frames:
+            scaled_frame = pygame.transform.scale(frame, (frame.get_width() * self.scale_factor, frame.get_height() * self.scale_factor))
+            self.scaled_frames.append((scaled_frame, duration))
+
+class EndText(Entity):
+    def __init__(self, json_path, x=SCREEN_WIDTH // 1.25, y=0):
+        self.x = x
+        self.y = y
+        self.scaled_frames = []
+        self.current_frame = 0
+        self.current_time = 0
+        self.frame_duration = 0
+        self.position = pygame.Vector2(x, y)
+        self.load_animation(json_path)
+
+    def draw(self, screen):
+        if self.scaled_frames:
+            frame_surface, _ = self.scaled_frames[self.current_frame]
+            screen.blit(frame_surface, (self.x, self.y))
+    
+    def update(self, dt):
+        # Update the current frame based on the animation time
+        if self.scaled_frames:
+            self.current_time += dt * 1000
+            frame_duration = self.scaled_frames[self.current_frame][1]
+            #Check if we should advance the frame
+            if self.current_time >= frame_duration:
+                self.current_time = 0
+                self.current_frame = (self.current_frame + 1) % len(self.scaled_frames)
+
+    #Load json animation data
+    def load_animation(self, json_path):
+        try:
+            with open(json_path, "r") as f:
+                animation_data = json.load(f)
+        except FileNotFoundError:
+            print(f"Error: Could not find animation data file at path: {json_path}")
+            return
+
+        #Extract relevant data
+        frames_data = animation_data["frames"]
+        sprite_sheet_path = animation_data["meta"]["image"]
+        sprite_sheet_path = os.path.join(os.path.dirname(json_path), sprite_sheet_path)
+
+        #Load sprite sheet
+        try:
+            self.sprite_sheet = pygame.image.load(sprite_sheet_path)
+        except pygame.error as e:
+            print(f"Error loading sprite sheet: {sprite_sheet_path}: {e}")
+            return
+
+        #Extract and process frames
+        frames = []
+        for frame_data in frames_data:
+            x = frame_data["frame"]["x"]
+            y = frame_data["frame"]["y"]
+            w = frame_data["frame"]["w"]
+            h = frame_data["frame"]["h"]
+            duration = frame_data["duration"]
+            frame = self.sprite_sheet.subsurface(pygame.Rect(x, y, w , h))
+            frames.append((frame, duration))
+
+        #Scaling
+        self.scale_factor = 10
+        self.scaled_frames = []
+        for frame, duration in frames:
+            scaled_frame = pygame.transform.scale(frame, (frame.get_width() * self.scale_factor, frame.get_height() * self.scale_factor))
+            self.scaled_frames.append((scaled_frame, duration))

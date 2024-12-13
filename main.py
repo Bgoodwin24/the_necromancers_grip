@@ -21,7 +21,15 @@ def main():
     background2 = pygame.image.load("Images/PNGs/Graveyard Background.png")
 
     #Levels
-    current_level = Level()
+    start_level = Level()
+    second_level = Level()
+    last_level = Level()
+    all_levels = [
+        start_level,
+        second_level,
+        last_level,
+    ]
+    current_level = start_level
     
     #Colliders
     left_wall = pygame.Rect(-5, 0, 5, SCREEN_HEIGHT * 3)
@@ -37,7 +45,23 @@ def main():
     #Load entities
     rogue = Rogue("Images/PNGs/Smaller rogue animations-Smaller Idle.json")
     skeleton = Skeleton("Images/PNGs/Skeleton-Idle.json")
+    skeleton2 = Skeleton("Images/PNGs/Skeleton-Idle.json")
     spirit = Spirit("Images/PNGs/Small Spirit-Idle.json")
+    arrow = Arrow("Images/PNGs/Next Level Arrow-Next Level.json")
+    end_text = EndText("Images/PNGs/End Text-Exit Text.json")
+
+    #Enemy list
+    spawn_timer = None
+
+    def initialize_enemy_list(level):
+        if level == start_level:
+            return [skeleton]
+        elif level == second_level:
+            return [skeleton, skeleton2]
+        elif level == last_level:
+            return [skeleton, skeleton2, spirit]
+        else:
+            return []
 
     #Initial position
     if rogue.scaled_frames:
@@ -47,26 +71,44 @@ def main():
         print("Warning: scaled_frames not initialized.")
 
     if skeleton.scaled_frames:
-        skeleton.position.x = (SCREEN_WIDTH * 3 - skeleton.scaled_frames[0][0].get_width()) // 2 + 925
+        skeleton.position.x = (SCREEN_WIDTH * 3 - skeleton.scaled_frames[0][0].get_width()) // 2 + 200
         skeleton.position.y = (SCREEN_HEIGHT * 3 - skeleton.scaled_frames[0][0].get_height()) // 2 + 240
     else:
         print("Warning: scaled_frames not initialized.")
 
+    if skeleton2.scaled_frames:
+        skeleton2.position.x = (SCREEN_WIDTH * 3 - skeleton2.scaled_frames[0][0].get_width()) // 2 + 500
+        skeleton2.position.y = (SCREEN_HEIGHT * 3 - skeleton2.scaled_frames[0][0].get_height()) // 2 + 240
+    else:
+        print("Warning: scaled_frames not initialized.")
+
     if spirit.scaled_frames:
+        print(f"Drawing Spirit at {spirit.position}")
         spirit.x_pos = (SCREEN_WIDTH * 3 - spirit.scaled_frames[0][0].get_width()) // 2 + 925
         spirit.position.x += 1550
         spirit.y_pos = (SCREEN_HEIGHT * 3 - spirit.scaled_frames[0][0].get_height()) // 2 + 240
     else:
         print("Warning: scaled_frames not initialized.")
 
+    if arrow.scaled_frames:
+        arrow.position.x = (SCREEN_WIDTH * 3 - arrow.scaled_frames[0][0].get_width()) // 2
+        arrow.position.y = (SCREEN_HEIGHT * 3 - arrow.scaled_frames[0][0].get_height()) // 2
+    else:
+        print("Warning: scaled_frames not initialized.")
+
     run = True
+
+    transitioning = False
+    transition_timer = None
+
+    enemy_list = initialize_enemy_list(current_level)
 
     #Game Loop
     while run:
 
         #Fps control
         dt = clock.tick(60) / 1000.0
-        
+
         #Event handler
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -79,9 +121,20 @@ def main():
                         rogue.switch_animation("Attack Left", "Images/PNGs/Small rogue animations-Small Attack Left-Attack Left.json")
                     else:
                         rogue.switch_animation("Attack", "Images/PNGs/Small rogue animations-Small Attack-Attack.json")
-
+                if current_level == last_level and event.key == pygame.K_ESCAPE and len(enemy_list) == 0:
+                    pygame.quit()
+                    sys.exit()
+        
         #Clear screen
         screen.fill((0, 0, 0))
+
+        #Draw levels
+        if current_level == start_level:
+            current_level.draw_level(screen, background1)
+        if current_level == second_level:
+            current_level.draw_level(screen, background1)
+        if current_level == last_level:
+            current_level.draw_level(screen, background2)
 
         #Movement input
         keys = pygame.key.get_pressed()
@@ -89,12 +142,10 @@ def main():
         #Update player postion and rect
         rogue.x_pos, rogue.y_pos = rogue.handle_movement(keys, rogue.x_pos, rogue.y_pos, colliders, dt)
         print(f"New position: {rogue.x_pos}, {rogue.y_pos}")
-        rogue.rect = pygame.Rect(rogue.x_pos, rogue.y_pos, rogue.scaled_frames[0][0].get_width(), rogue.scaled_frames[0][0].get_height())
+        rogue.rect = pygame.Rect(rogue.x_pos, rogue.y_pos, rogue.scaled_frames[0][0].get_width() + 20, rogue.scaled_frames[0][0].get_height())
         #Update skeleton rect after its position has been set
         skeleton.rect = pygame.Rect(skeleton.position.x, skeleton.position.y, skeleton.scaled_frames[0][0].get_width(), skeleton.scaled_frames[0][0].get_height())
         spirit.rect = pygame.Rect(spirit.position.x, spirit.position.y, spirit.scaled_frames[0][0].get_width(), spirit.scaled_frames[0][0].get_height())
-        #Draw background
-        current_level.draw_level(screen, background1)
 
         #Conditional food spawns
         if rogue.health <= 1000:
@@ -110,6 +161,8 @@ def main():
                     if hasattr(target, 'rect') and target.rect:
                         if hasattr(target, 'is_rogue') and target.is_rogue and target.alive and target.rect.colliderect(projectile_rect):
                             return False
+                        if target.is_dying:
+                            return
                         if hasattr(target, 'is_skeleton') and target.is_skeleton and target.alive and target.rect.colliderect(projectile_rect):
                             if not projectile.damage_applied:
                                 skeleton.take_damage(rogue.attack)
@@ -163,13 +216,24 @@ def main():
 
             if spirit.alive:
                 spirit.update(dt)  # Update spirit even when rogue is dead
-                spirit.draw(screen, spirit.position.x, spirit.position.y)
+                spirit.draw(screen, spirit.position.x, spirit.position.y, rogue)
         else:
             if rogue.alive and not rogue.is_dying:
                 if rogue.current_animation not in ["Death", "Idle", "Run", "Run Left", "Attack", "Attack Left", "Damaged"]:
                     rogue.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
                     print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
 
+        if rogue.current_animation == "Death":
+            rogue.rect = pygame.Rect(rogue.position.x, rogue.position.y + 50, rogue.frame_width - 530, rogue.frame_height - 110)
+        if rogue.current_animation == "Idle":
+            rogue.rect = pygame.Rect(rogue.position.x, rogue.position.y + 110, rogue.frame_width, rogue.frame_height - 110)
+        if rogue.current_animation in ["Attack", "Attack Left"]:
+            rogue.rect = pygame.Rect(rogue.position.x, rogue.position.y + 80, rogue.frame_width, rogue.frame_height)
+        if rogue.current_animation in ["Run", "Run Left"]:
+            rogue.rect = pygame.Rect(rogue.position.x, rogue.position.y + 120, rogue.frame_width + 20, rogue.frame_height - 120)
+        if rogue.current_animation in ["Damaged", "Damaged Left"]:
+            rogue.rect = pygame.Rect(rogue.position.x - 42, rogue.position.y + 110, rogue.frame_width - 20, rogue.frame_height - 110)
+        
         # Check if skeleton/spirit are idle and in range to attack
         distance_to_player = skeleton.position.x - rogue.x_pos
         if skeleton.is_attacking:
@@ -236,6 +300,39 @@ def main():
                 spirit.is_attacking = False
                 spirit.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
         
+        if skeleton2.is_attacking:
+            attack_damage_frame = 3
+            if skeleton2.current_animation in ["Attack", "Attack Right"]:
+                attack_x, attack_y = skeleton2.get_attack_position(screen)
+
+                if not rogue.alive and skeleton2.alive:
+                    skeleton2.is_attacking = False
+                    skeleton2.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+            
+                if skeleton2.current_frame == attack_damage_frame:
+                    if rogue.rect and skeleton2.rect.colliderect(rogue.rect) and not skeleton2.damage_applied:
+                        print("Skeleton hits the rogue!")
+                        if skeleton2.current_frame == 3:
+                            rogue.take_damage(skeleton2.attack)
+                            skeleton2.damage_applied = True
+
+            if skeleton2.current_frame == len(skeleton2.scaled_frames) - 1:  # End of animation
+                skeleton2.is_attacking = False
+                skeleton2.damage_applied = False
+
+        if rogue.alive:
+            if abs(distance_to_player) < 150 and not skeleton2.is_attacking:
+                skeleton2.is_attacking = True
+                if skeleton2.position.x < rogue.x_pos:
+                        skeleton2.facing_direction = "Right"
+                        skeleton2.switch_animation("Attack Right", "Images/PNGs/Skeleton Walk Right-Attack Right.json")
+                else:
+                    skeleton2.facing_direction = "Left"
+                    skeleton2.switch_animation("Attack", "Images/PNGs/Skeleton Walk Right-Attack.json")
+        else:
+            skeleton2.is_attacking = False
+            skeleton2.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+
         #Render and debug food positions
         for food in current_level.food_items:
             food.update(dt)
@@ -244,6 +341,11 @@ def main():
         #Handle projectile updates
         projectiles_to_remove = []
         all_projectiles = spirit.projectiles + rogue.projectiles
+        for projectile in rogue.projectiles:
+            for enemy in enemy_list:
+                if enemy.is_dying:
+                    projectile.position.x = enemy.position.x
+                    
         for projectile in all_projectiles:
             projectile.update(dt)
             projectile.draw(screen)
@@ -252,24 +354,25 @@ def main():
                 continue  # Skip the rest of the loop if damage is already applied
 
             # Handle collision and damage application
-            if check_collision(projectile, rogue):
-                if rogue.is_invincible:  # Skip damage if rogue is invincible
-                    continue
-                if projectile.category == "friendly":  # Friendly projectiles should deal damage
-                    rogue.take_damage(rogue.attack)
-                    print(f"Rogue hit by friendly projectile! Health: {rogue.health}")
-                    projectile.damage_applied = True
-                    continue  # Once damage is applied, skip further processing
-
             if check_collision(projectile, skeleton):
                 if projectile.category == "friendly":  # If projectile is friendly and hits skeleton
+                    projectile.position.x = skeleton.position.x - 80
                     skeleton.take_damage(rogue.attack)
                     print(f"Skeleton hit by friendly projectile! Health: {skeleton.health}")
                     projectile.damage_applied = True
                     continue  # Once damage is applied, skip further processing
 
+            if check_collision(projectile, skeleton2):
+                if projectile.category == "friendly":  # If projectile is friendly and hits skeleton
+                    projectile.position.x = skeleton2.position.x - 80
+                    skeleton2.take_damage(rogue.attack * 2)
+                    print(f"Skeleton hit by friendly projectile! Health: {skeleton2.health}")
+                    projectile.damage_applied = True
+                    continue  # Once damage is applied, skip further processing
+
             if check_collision(projectile, spirit):
                 if projectile.category == "friendly":  # If projectile is friendly and hits spirit
+                    projectile.position.x = spirit.position.x - 80
                     spirit.take_damage(rogue.attack)
                     print(f"Spirit hit by friendly projectile! Health: {spirit.health}")
                     projectile.damage_applied = True
@@ -301,40 +404,153 @@ def main():
         current_level.check_food_collision(rogue, rogue.rect)
         current_level.remove_collected_items()
 
+        enemy_list = [enemy for enemy in enemy_list if enemy.alive]
+
         #Update enemy/player/level/items
+        if skeleton in enemy_list:
+            if skeleton.alive:
+                if rogue.alive and not rogue.is_dying:
+                    skeleton.update(dt)
+                    skeleton.draw(screen, skeleton.position.x, skeleton.position.y, rogue)
+                    skeleton.handle_ai(rogue, rogue.position, dt, rogue.rect)
+                else:
+                    # Skeleton should stop animating or move to idle after rogue's death
+                    skeleton.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+                    skeleton.update(dt)
+                    skeleton.draw(screen, skeleton.position.x, skeleton.position.y, rogue)
 
-        if skeleton.alive:
-            if rogue.alive and not rogue.is_dying:
-                skeleton.update(dt)
-                skeleton.draw(screen, skeleton.position.x, skeleton.position.y)
-                skeleton.handle_ai(rogue, rogue.position, dt, rogue.rect)
-            else:
-                # Skeleton should stop animating or move to idle after rogue's death
-                skeleton.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
-                skeleton.update(dt)
-                skeleton.draw(screen, skeleton.position.x, skeleton.position.y)
-
-        if spirit.alive:
-            spirit.update(dt)
-            spirit.draw(screen, spirit.position.x, spirit.position.y)
-            if rogue.alive and not rogue.is_dying:
-                spirit.handle_ai(rogue, rogue.position, dt, rogue.rect)
-            else:
-                pass
+        if skeleton2 in enemy_list:
+            if skeleton2.alive:
+                if rogue.alive and not rogue.is_dying:
+                    skeleton2.update(dt)
+                    skeleton2.draw(screen, skeleton2.position.x, skeleton2.position.y, rogue)
+                    skeleton2.handle_ai(rogue, rogue.position, dt, rogue.rect)
+                else:
+                    # Skeleton should stop animating or move to idle after rogue's death
+                    skeleton2.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
+                    skeleton2.update(dt)
+                    skeleton2.draw(screen, skeleton2.position.x, skeleton2.position.y, rogue)
+        
+        if spirit in enemy_list:
+            if spirit.alive:
+                spirit.update(dt)
+                spirit.draw(screen, spirit.position.x, spirit.position.y, rogue)
+                if rogue.alive and not rogue.is_dying:
+                    spirit.handle_ai(rogue, rogue.position, dt, rogue.rect)
+                else:
+                    pass
         if rogue.is_dying or rogue.alive:
             print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
             rogue.update(dt)
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
 
+        #Level transition
+        def can_pass():
+            if all(enemy.health <= 0 for enemy in enemy_list):
+                if current_level in [start_level, second_level]:
+                    arrow.update(dt)
+                    arrow.draw(screen)
+                    return True
+                
+        if current_level == last_level and len(enemy_list) == 0:
+            end_text.update(dt)
+            end_text.draw(screen)
+
+        print(f"Transitioning: {transitioning}")
+        print(f"Rogue position: {rogue.x_pos}, {rogue.y_pos}")
+        print(f"Rogue rect: {rogue.rect}")
+        print(f"Right wall rect: {right_wall.rect}")
+        print(f"Collision: {rogue.rect.colliderect(right_wall.rect)}")
+        print(f"Can pass: {can_pass()}")
+        print(f"Enemy list: {enemy_list}")
+
+        if current_level == last_level:
+            if spirit.alive and skeleton not in enemy_list and skeleton2 not in enemy_list:
+                if spawn_timer is None:  # Start the timer if not already started
+                    spawn_timer = pygame.time.get_ticks()
+                
+                elapsed_time = pygame.time.get_ticks() - spawn_timer
+                if elapsed_time > 7000:
+                    skeleton.reset(health=1000)
+                    skeleton2.reset(health=1000)
+                    skeleton.position.x = 1000
+                    skeleton2.position.x = 1500
+                    enemy_list.append(skeleton)
+                    enemy_list.append(skeleton2)
+                    
+                    skeleton.switch_animation("Summon", "Images/PNGs/Skeleton-Summon.json")
+                    skeleton2.switch_animation("Summon", "Images/PNGs/Skeleton-Summon.json")
+                    
+                    skeleton.summoning = True
+                    skeleton2.summoning = True
+
+                    spawn_timer = None
+            else:
+                spawn_timer = None
+
         #Check if player is near right wall to pass to next screen
-        if right_wall.can_pass(rogue):
-            #add code to transition to next screen
-            pass
+        if can_pass() and rogue.is_moving and rogue.rect.colliderect(right_wall.rect):
+            print("Ready to transition")
+            if not transitioning:
+                transitioning = True
+                transition_timer = pygame.time.get_ticks()
+
+        # Handle level transition
+        if transitioning:
+            elapsed_time = pygame.time.get_ticks() - transition_timer
+            if elapsed_time > 250:
+                if current_level == start_level:
+                    current_level = second_level
+                elif current_level == second_level:
+                    current_level = last_level
+                transitioning = False
+                enemy_list = initialize_enemy_list(current_level)
+                for enemy in enemy_list:
+                    if isinstance(enemy, Skeleton):
+                        enemy.reset(health=1000)
+                    elif isinstance(enemy, Skeleton):
+                        enemy.reset(health=1000)
+                    elif isinstance(enemy, Spirit):
+                        enemy.reset(health=1500)
+
+                right_wall.rect = RightWall(current_level).rect
+
+                # Reset rogue's position
+                rogue.x_pos = (SCREEN_WIDTH * 3 - rogue.scaled_frames[0][0].get_width()) // 2 - 830
+                rogue.y_pos = (SCREEN_HEIGHT * 3 - rogue.scaled_frames[0][0].get_height()) // 2 + 198
+                rogue.rect = pygame.Rect(
+                    rogue.x_pos,
+                    rogue.y_pos,
+                    rogue.scaled_frames[0][0].get_width(),
+                    rogue.scaled_frames[0][0].get_height(),
+                )
+                if skeleton.scaled_frames:
+                    skeleton.position.x = (SCREEN_WIDTH * 3 - skeleton.scaled_frames[0][0].get_width()) // 2 + 200
+                    skeleton.position.y = (SCREEN_HEIGHT * 3 - skeleton.scaled_frames[0][0].get_height()) // 2 + 240
+
+                if skeleton2.scaled_frames:
+                    skeleton2.position.x = (SCREEN_WIDTH * 3 - skeleton2.scaled_frames[0][0].get_width()) // 2 + 500
+                    skeleton2.position.y = (SCREEN_HEIGHT * 3 - skeleton2.scaled_frames[0][0].get_height()) // 2 + 240
+
+                if spirit.scaled_frames:
+                    spirit.x_pos = (SCREEN_WIDTH * 3 - spirit.scaled_frames[0][0].get_width()) // 2 + 925
+                    spirit.y_pos = (SCREEN_HEIGHT * 3 - spirit.scaled_frames[0][0].get_height()) // 2 + 240
+                        
+            else:
+                # Screen fades to black during transition
+                screen.fill((0, 0, 0))
+                pygame.display.flip()
+                continue  # Skip the rest of the loop during transition
+
+        # Check if the player can transition
+        if not transitioning:
+            if can_pass() and rogue.rect.colliderect(right_wall.rect):
+                transitioning = True
+                transition_timer = pygame.time.get_ticks()
 
         pygame.display.flip()
 
     pygame.quit()
-
 
 if __name__ == "__main__":
     main()

@@ -73,42 +73,20 @@ class Level:
             
     def check_food_collision(self, player, player_rect):
         for food in self.food_items:
-            if not player.rect:
-                return
-            if player_rect.colliderect(food.rect) and not food.collected:
+            if player_rect.colliderect(food.rect) and not food.collected and not food.animation_playing:
                 food.collect(player)
                 food.switch_animation("Images/PNGs/Chicken Leg-Omnomnom.json")
     
     def remove_collected_items(self):
-        self.food_items = [food for food in self.food_items if not food.collected or not food.finished_animation]
+        self.food_items = [food for food in self.food_items if not (food.collected and food.finished_animation)]
 
     def check_collision(self, player_rect, colliders):
         for collider in colliders:
             if player_rect.colliderect(collider):
                 return True
         return False
-
-    def add_enemies(self, json_path, num_enemies):
-        pass
-
-    def check_enemies_dead(self):
-        return all(enemy.health <= 0 for enemy in self.enemies)
     
 class RightWall:
     def __init__(self, level):
         self.rect = pygame.Rect(SCREEN_WIDTH * 3 - 1, 0, 1, SCREEN_HEIGHT * 3)
         self.level = level
-
-    def can_pass(self, player):
-        if self.level.check_enemies_dead():
-            return True
-        return False
-    
-    def handle_collision(self, player):
-        if self.rect.colliderect(player.get_rect(player.position.x, player.position.y)):
-            if self.can_pass(player):
-                self.transition_to_next_level()
-    
-    def transition_to_next_level(self):
-        #load new level, reset positions, load background/enemies
-        pass
