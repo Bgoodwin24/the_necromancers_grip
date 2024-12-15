@@ -7,6 +7,7 @@ import json
 from items import *
 from constants import *
 from projectiles import *
+from healthbars import *
 
 def main():
     pygame.init()
@@ -49,6 +50,19 @@ def main():
     spirit = Spirit("Images/PNGs/Small Spirit-Idle.json")
     arrow = Arrow("Images/PNGs/Next Level Arrow-Next Level.json")
     end_text = EndText("Images/PNGs/End Text-Exit Text.json")
+
+    #Load healthbars
+    rogue_bar = HealthBar("Images/PNGs/Health Bar-Base Bar.json", rogue)
+    skeleton_bar = HealthBar("Images/PNGs/Skeleton Health Bar-Skelton Base Bar.json", skeleton)
+    skeleton2_bar = HealthBar("Images/PNGs/Skeleton Health Bar-Skelton Base Bar.json", skeleton2)
+    spirit_bar = HealthBar("Images/PNGs/Boss Health Bar-Boss Base Bar.json", spirit)
+
+    all_bars = [
+        rogue_bar,
+        skeleton_bar,
+        skeleton2_bar,
+        spirit_bar,
+    ]
 
     #Enemy list
     spawn_timer = None
@@ -96,6 +110,53 @@ def main():
     else:
         print("Warning: scaled_frames not initialized.")
 
+    #Health bars
+    def advanced_rogue_health(self):
+        transition_width = 0
+        transition_color = (222, 0, 0)
+
+        #Stop target health exceeding player health
+        if rogue.target_health >= rogue.max_health:
+            rogue.target_health = rogue.max_health
+        
+        #Healing leading bar trail
+        if rogue.health < rogue.target_health:
+            previous_health = rogue.health
+            rogue.health += rogue.health_change_speed
+            if rogue.health > rogue.target_health:
+                rogue.health = rogue.target_health
+            transition_width = int((rogue.target_health - previous_health) / rogue.health_ratio) - 5
+            transition_color = (73, 176, 0)
+
+        #Damage leading bar trail
+        elif rogue.health > rogue.target_health:
+            if rogue.target_health >= rogue.max_health:
+                rogue.target_health = rogue.max_health
+            previous_health = rogue.health
+            rogue.health -= rogue.health_change_speed
+            transition_width = int((previous_health - rogue.target_health) / rogue.health_ratio)
+            transition_color = (166, 0, 0)
+        
+        #Assign bars
+        rogue_bar_rect = pygame.Rect(112, 947, rogue.health / rogue.health_ratio, 28)
+
+        #Start transition bar at appropriate position based on healing or damage
+        if transition_color == (73, 176, 0):  #Healing
+            transition_bar_start = rogue_bar_rect.right
+            rogue_transition_bar_rect = pygame.Rect(transition_bar_start, 947, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+            pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+        else:
+            transition_bar_start = rogue_bar_rect.right - transition_width
+            rogue_transition_bar_rect = pygame.Rect(transition_bar_start, 947, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+            pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+
+        #Draw bars
+        pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+        pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+
+    #Game loop
     run = True
 
     transitioning = False
@@ -103,7 +164,6 @@ def main():
 
     enemy_list = initialize_enemy_list(current_level)
 
-    #Game Loop
     while run:
 
         #Fps control
@@ -404,6 +464,28 @@ def main():
         current_level.check_food_collision(rogue, rogue.rect)
         current_level.remove_collected_items()
 
+        #Update health bars
+        rogue_bar.update(dt)
+        rogue_bar.draw(screen, 0, 895)
+        rogue_bar.position.x = 0
+        rogue_bar.position.y = 895
+        for enemy in enemy_list:
+            if enemy == skeleton:
+                skeleton_bar.update(dt)
+                skeleton_bar.draw(screen, 320, 360)
+                skeleton_bar.position.x = 1400
+                skeleton_bar.position.y = 975
+            if enemy == skeleton2:
+                skeleton2_bar.update(dt)
+                skeleton2_bar.draw(screen, 640, 360)
+                skeleton2_bar.position.x = 900
+                skeleton2_bar.position.y = 975
+            if enemy == spirit:
+                spirit_bar.update(dt)
+                spirit_bar.draw(screen, 1280, 200)
+                spirit_bar.position.x = 1400
+                spirit_bar.position.y = 895
+
         enemy_list = [enemy for enemy in enemy_list if enemy.alive]
 
         #Update enemy/player/level/items
@@ -443,6 +525,7 @@ def main():
             print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
             rogue.update(dt)
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
+            advanced_rogue_health(rogue)
 
         #Level transition
         def can_pass():
