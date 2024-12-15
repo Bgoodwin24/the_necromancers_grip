@@ -81,10 +81,6 @@ class Entity:
     def attack_projectile(self, x, y, json_path):
         pass
 
-    #def attack(self, other, json_path):
-        #if self.check_attack_collision:
-            #self.
-
     def die(self, animation_name, json_path):
         self.rect = None
         self.death_position = pygame.Vector2(self.position.x, self.position.y)
@@ -186,7 +182,11 @@ class Rogue(Entity):
         self.image = pygame.image.load("Images/PNGs/Smaller rogue animations-Smaller Idle.png")
         self.current_animation = "Idle"
         self.health = 2000
+        self.target_health = 2000
         self.max_health = 2000
+        self.health_bar_length = 380
+        self.health_ratio = self.max_health / self.health_bar_length
+        self.health_change_speed = 30
         self.attack = 125
         self.is_rogue = True
         self.is_damaged = False
@@ -284,8 +284,10 @@ class Rogue(Entity):
         return x_pos, y_pos
 
     def heal(self, heal_amount):
-        self.health += heal_amount
+        self.target_health += heal_amount
         self.health = min(self.health, self.max_health)
+        if self.health >= self.max_health:
+            self.health = 2000
 
     def spawn_projectiles(self, attack_x, attack_y):
         if not self.projectile_spawned and self.is_attacking:
@@ -394,14 +396,16 @@ class Rogue(Entity):
                 screen.blit(frame_surface, (x_pos, y_pos))
 
     def take_damage(self, damage_amount):
+        if self.is_invincible:
+            return
         if not self.is_invincible:
             self.is_damaged = True
             self.is_attacking = False
             self.is_invincible = True
             self.invincibility_timer = 0
             self.current_frame = 0
-        self.health -= damage_amount
-        self.health = max(0, self.health)
+        self.target_health -= damage_amount
+        self.target_health = max(0, self.target_health)
         print(f"Rogue took {damage_amount} damage. Health: {self.health}")
         if self.health == 0:
             print("Game over, better luck next time!")
@@ -415,7 +419,11 @@ class Skeleton(Entity):
         self.image = pygame.image.load("Images/PNGs/Skeleton-Idle.png")
         self.current_animation = "Idle"
         self.health = 1000
+        self.target_health = 1000
         self.max_health = 1000
+        self.health_bar_length = 380
+        self.health_ratio = self.max_health / self.health_bar_length
+        self.health_change_speed = 30
         self.attack = 500
         self.is_skeleton = True
         self.is_dying = False
@@ -697,7 +705,11 @@ class Spirit(Entity):
         self.image = pygame.image.load("Images/PNGs/Small Spirit-Idle.png")
         self.current_animation = "Idle"
         self.health = 1500
+        self.target_health = 1500
         self.max_health = 1500
+        self.health_bar_length = 380
+        self.health_ratio = self.max_health / self.health_bar_length
+        self.health_change_speed = 30
         self.attack = 500
         self.is_spirit = True
         self.is_dying = False

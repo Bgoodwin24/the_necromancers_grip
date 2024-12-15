@@ -7,6 +7,7 @@ import json
 from items import *
 from constants import *
 from projectiles import *
+from healthbars import *
 
 def main():
     pygame.init()
@@ -49,6 +50,19 @@ def main():
     spirit = Spirit("Images/PNGs/Small Spirit-Idle.json")
     arrow = Arrow("Images/PNGs/Next Level Arrow-Next Level.json")
     end_text = EndText("Images/PNGs/End Text-Exit Text.json")
+
+    #Load healthbars
+    rogue_bar = HealthBar("Images/PNGs/Health Bar-Base Bar.json", rogue)
+    skeleton_bar = HealthBar("Images/PNGs/Skeleton Health Bar-Skelton Base Bar.json", skeleton)
+    skeleton2_bar = HealthBar("Images/PNGs/Skeleton Health Bar-Skelton Base Bar.json", skeleton2)
+    spirit_bar = HealthBar("Images/PNGs/Boss Health Bar-Boss Base Bar.json", spirit)
+
+    all_bars = [
+        rogue_bar,
+        skeleton_bar,
+        skeleton2_bar,
+        spirit_bar,
+    ]
 
     #Enemy list
     spawn_timer = None
@@ -96,6 +110,154 @@ def main():
     else:
         print("Warning: scaled_frames not initialized.")
 
+    #Health bars
+    def advanced_rogue_health(self):
+        transition_width = 0
+        transition_color = (222, 0, 0)
+
+        #Stop target health exceeding player health
+        if rogue.target_health >= rogue.max_health:
+            rogue.target_health = rogue.max_health
+        
+        #Healing leading bar trail
+        if rogue.health < rogue.target_health:
+            previous_health = rogue.health
+            rogue.health += rogue.health_change_speed
+            if rogue.health > rogue.target_health:
+                rogue.health = rogue.target_health
+            transition_width = int((rogue.target_health - previous_health) / rogue.health_ratio) - 5
+            transition_color = (73, 176, 0)
+
+        #Damage leading bar trail
+        elif rogue.health > rogue.target_health:
+            if rogue.target_health >= rogue.max_health:
+                rogue.target_health = rogue.max_health
+            previous_health = rogue.health
+            rogue.health -= rogue.health_change_speed
+            transition_width = int((previous_health - rogue.target_health) / rogue.health_ratio)
+            transition_color = (166, 0, 0)
+        
+        #Assign bars
+        rogue_bar_rect = pygame.Rect(112, 947, rogue.health / rogue.health_ratio, 28)
+
+        #Start transition bar at appropriate position based on healing or damage
+        if transition_color == (73, 176, 0):  #Healing
+            transition_bar_start = rogue_bar_rect.right
+            rogue_transition_bar_rect = pygame.Rect(transition_bar_start, 947, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+            pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+        else:
+            transition_bar_start = rogue_bar_rect.right - transition_width
+            rogue_transition_bar_rect = pygame.Rect(transition_bar_start, 947, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+            pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+
+        #Draw bars
+        pygame.draw.rect(screen, (106, 190, 48), rogue_bar_rect)
+        pygame.draw.rect(screen, transition_color, rogue_transition_bar_rect)
+
+    def advanced_skeleton_health(self):
+        transition_width = 0
+        transition_color = (222, 0, 0)
+
+        #Stop target health exceeding player health
+        if skeleton.target_health >= skeleton.max_health:
+            skeleton.target_health = skeleton.max_health
+        
+        #Healing leading bar trail
+        if skeleton.health < skeleton.target_health and skeleton.summoning:
+            previous_health = skeleton.health
+            skeleton.health += skeleton.health_change_speed
+            if skeleton.health > skeleton.target_health:
+                skeleton.health = skeleton.target_health
+            transition_width = int((skeleton.target_health - previous_health) / skeleton.health_ratio) - 5
+            transition_color = (73, 176, 0)
+
+        #Damage leading bar trail
+        elif skeleton.health > skeleton.target_health:
+            if skeleton.target_health >= skeleton.max_health:
+                skeleton.target_health = skeleton.max_health
+            previous_health = skeleton.health
+            skeleton.health -= skeleton.health_change_speed
+            transition_width = int((previous_health - skeleton.target_health) / skeleton.health_ratio)
+            transition_color = (166, 0, 0)
+        
+        #Assign bars
+        skeleton_bar_rect = pygame.Rect(1512, 1027, skeleton.health / skeleton.health_ratio, 28)
+
+        #Start transition bar at appropriate position based on healing or damage
+        if transition_color == (73, 176, 0):  #Healing
+            transition_bar_start = skeleton_bar_rect.right
+            skeleton_transition_bar_rect = pygame.Rect(transition_bar_start, 1027, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), skeleton_bar_rect)
+            pygame.draw.rect(screen, transition_color, skeleton_transition_bar_rect)
+        else:
+            transition_bar_start = skeleton_bar_rect.right - transition_width
+            skeleton_transition_bar_rect = pygame.Rect(transition_bar_start, 1027, transition_width, 28)
+            pygame.draw.rect(screen, (106, 190, 48), skeleton_bar_rect)
+            pygame.draw.rect(screen, transition_color, skeleton_transition_bar_rect)
+
+        #Draw bars
+        pygame.draw.rect(screen, (106, 190, 48), skeleton_bar_rect)
+        pygame.draw.rect(screen, transition_color, skeleton_transition_bar_rect)
+
+    def advanced_skeleton2_health(self):
+        transition_width = 0
+        transition_color = (222, 0, 0)
+
+        #Stop target health exceeding player health
+        if skeleton2.target_health >= skeleton2.max_health:
+            skeleton2.target_health = skeleton2.max_health
+
+        #Damage leading bar trail
+        elif skeleton2.health > skeleton2.target_health:
+            if skeleton2.target_health >= skeleton2.max_health:
+                skeleton2.target_health = skeleton2.max_health
+            previous_health = skeleton2.health
+            skeleton2.health -= skeleton2.health_change_speed
+            transition_width = int((previous_health - skeleton2.target_health) / skeleton2.health_ratio)
+            transition_color = (166, 0, 0)
+        
+        #Assign bars
+        skeleton2_bar_rect = pygame.Rect(1012, 1027, skeleton2.health / skeleton2.health_ratio, 28)
+
+        #Start transition bar at appropriate position based on damage
+        transition_bar_start = skeleton2_bar_rect.right - transition_width
+        skeleton2_transition_bar_rect = pygame.Rect(transition_bar_start, 1027, transition_width, 28)
+
+        #Draw bars
+        pygame.draw.rect(screen, (106, 190, 48), skeleton2_bar_rect)
+        pygame.draw.rect(screen, transition_color, skeleton2_transition_bar_rect)
+
+    def advanced_spirit_health(self):
+        transition_width = 0
+        transition_color = (222, 0, 0)
+
+        #Stop target health exceeding player health
+        if spirit.target_health >= spirit.max_health:
+            spirit.target_health = spirit.max_health
+
+        #Damage leading bar trail
+        elif spirit.health > spirit.target_health:
+            if spirit.target_health >= spirit.max_health:
+                spirit.target_health = spirit.max_health
+            previous_health = spirit.health
+            spirit.health -= spirit.health_change_speed
+            transition_width = int((previous_health - spirit.target_health) / spirit.health_ratio)
+            transition_color = (166, 0, 0)
+        
+        #Assign bars
+        spirit_bar_rect = pygame.Rect(1512, 947, spirit.health / spirit.health_ratio, 28)
+
+        #Start transition bar at appropriate position based on damage
+        transition_bar_start = spirit_bar_rect.right - transition_width
+        spirit_transition_bar_rect = pygame.Rect(transition_bar_start, 947, transition_width, 28)
+
+        #Draw bars
+        pygame.draw.rect(screen, (106, 190, 48), spirit_bar_rect)
+        pygame.draw.rect(screen, transition_color, spirit_transition_bar_rect)
+
+    #Game loop
     run = True
 
     transitioning = False
@@ -103,7 +265,6 @@ def main():
 
     enemy_list = initialize_enemy_list(current_level)
 
-    #Game Loop
     while run:
 
         #Fps control
@@ -404,6 +565,34 @@ def main():
         current_level.check_food_collision(rogue, rogue.rect)
         current_level.remove_collected_items()
 
+        #Update health bars
+        rogue_bar.position.x = 0
+        rogue_bar.position.y = 895
+        rogue_bar.update(dt)
+        rogue_bar.draw(screen, 0, 895)
+
+        for enemy in enemy_list:
+            if enemy == skeleton and skeleton.alive:
+                if skeleton.alive:
+                    skeleton_bar.position.x = 1400
+                    skeleton_bar.position.y = 975
+                    skeleton_bar.update(dt)
+                    skeleton_bar.draw(screen, 1400, 975)
+                    advanced_skeleton_health(skeleton)
+            if enemy == skeleton2 and skeleton2.alive:
+                if skeleton2.alive:
+                    skeleton2_bar.position.x = 900
+                    skeleton2_bar.position.y = 975
+                    skeleton2_bar.update(dt)
+                    skeleton2_bar.draw(screen, 900, 975)
+                    advanced_skeleton2_health(skeleton2)
+            if enemy == spirit and spirit.alive:
+                spirit_bar.position.x = 1400
+                spirit_bar.position.y = 895
+                spirit_bar.update(dt)
+                spirit_bar.draw(screen, 1400, 895)
+                advanced_spirit_health(spirit)
+
         enemy_list = [enemy for enemy in enemy_list if enemy.alive]
 
         #Update enemy/player/level/items
@@ -443,6 +632,7 @@ def main():
             print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
             rogue.update(dt)
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
+            advanced_rogue_health(rogue)
 
         #Level transition
         def can_pass():
@@ -456,7 +646,7 @@ def main():
             end_text.update(dt)
             end_text.draw(screen)
 
-        print(f"Transitioning: {transitioning}")
+        print(f"Transitioning levels: {transitioning}")
         print(f"Rogue position: {rogue.x_pos}, {rogue.y_pos}")
         print(f"Rogue rect: {rogue.rect}")
         print(f"Right wall rect: {right_wall.rect}")
