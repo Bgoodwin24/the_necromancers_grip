@@ -419,7 +419,7 @@ class Skeleton(Entity):
         self.image = pygame.image.load("Images/PNGs/Skeleton-Idle.png")
         self.current_animation = "Idle"
         self.health = 1000
-        self.target_health = 500
+        self.target_health = 1000
         self.max_health = 1000
         self.health_bar_length = 380
         self.health_ratio = self.max_health / self.health_bar_length
@@ -705,11 +705,11 @@ class Spirit(Entity):
         self.image = pygame.image.load("Images/PNGs/Small Spirit-Idle.png")
         self.current_animation = "Idle"
         self.health = 1500
-        self.target_health = 500
+        self.target_health = 1500
         self.max_health = 1500
         self.health_bar_length = 380
         self.health_ratio = self.max_health / self.health_bar_length
-        self.health_change_speed = 5
+        self.health_change_speed = 30
         self.attack = 500
         self.is_spirit = True
         self.is_dying = False
@@ -847,7 +847,7 @@ class Spirit(Entity):
             self.is_invincible = True
             self.invincibility_timer = 0
             self.current_frame = 0
-        self.target_health -= damage_amount
+        self.health -= damage_amount
         # Ensure health never goes below zero
         self.health = max(0, self.health)
         

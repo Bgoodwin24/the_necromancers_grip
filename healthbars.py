@@ -54,7 +54,6 @@ class HealthBar:
     def update(self, dt):
         pass
 
-
         # Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
@@ -72,21 +71,3 @@ class HealthBar:
             if self.scaled_frames:
                 frame_surface, _ = self.scaled_frames[self.current_frame]
                 screen.blit(frame_surface, (x_pos, y_pos))
-                
-    def switch_animation(self, animation_name, json_path):
-        self.position = pygame.Vector2(self.position.x, self.position.y)
-        self.load_animation(json_path)
-        self.current_animation = animation_name
-        self.current_frame = 0
-        self.current_time = 0
-
-        if animation_name == "Attack" or animation_name == "Attack Left":
-            if self.scaled_frames:
-                frame_surface, _ = self.scaled_frames[self.current_frame]
-                self.frame_width = frame_surface.get_width()
-                self.frame_height = frame_surface.get_height()
-        else:
-            if self.scaled_frames:
-                frame_surface, _ = self.scaled_frames[0]
-                self.frame_width = frame_surface.get_width()
-                self.frame_height = frame_surface.get_height()
