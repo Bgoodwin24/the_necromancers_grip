@@ -31,8 +31,8 @@ This game, including its code and assets, is licensed under a [Custom License](L
 1. Clone the repository:
    git clone https://github.com/Bgoodwin24/the_necromancers_grip.git
 
-2. Navigate to the project directory:\n
+2. Navigate to the project directory:
     cd the_necromancers_grip
 
-3. Run the game:\n
+3. Run the game:
     python main.py
