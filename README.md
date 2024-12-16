@@ -9,6 +9,11 @@ This is a personal project for my Boot.dev course. It is a simple sidescrolling 
 - All artwork created by the developer
 - **No audio** (as I do not have a DAW to create any)
 
+## Controls:
+- A = Move Left
+- D = Move Right
+- Space = Attack
+
 ## Game Showcase:
 ![Game Showcase](https://github.com/Bgoodwin24/the_necromancers_grip/raw/main/Images/PNGs/NecromancersGrip.gif)
 
