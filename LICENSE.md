@@ -1,5 +1,4 @@
 # Custom License
-
 Copyright 2024 Billy Goodwin
 
 Permission is hereby granted to any person obtaining a copy of this game and associated assets (the "Game") to use, play, and share the Game in its unmodified form.
