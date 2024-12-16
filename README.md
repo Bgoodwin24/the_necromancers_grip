@@ -1,5 +1,4 @@
 # the_necromancers_grip
-
 This is a personal project for my Boot.dev course. It is a simple sidescrolling fighting game made with Pygame where you play as a rogue traveling through a graveyard to fight the necromancer that has taken up residence in the mausoleum, whose power is wreaking havoc on the rest of the deceased.
 
 ## Features:
@@ -9,6 +8,9 @@ This is a personal project for my Boot.dev course. It is a simple sidescrolling 
 - Idle, run, damage, death, and attack animations for each unit
 - All artwork created by the developer
 - **No audio** (as I do not have a DAW to create any)
+
+## Game Showcase:
+![Game Showcase](https://github.com/Bgoodwin24/the_necromancers_grip/raw/main/Images/PNGs/NecromancersGrip.gif)
 
 ## Asset Policy
 This repository includes custom assets created for this game. These assets are provided for the purpose of running and playing the game as intended.
@@ -27,11 +29,10 @@ This game, including its code and assets, is licensed under a [Custom License](L
 
 ### Steps
 1. Clone the repository:
-   ```bash
    git clone https://github.com/Bgoodwin24/the_necromancers_grip.git
 
-2. Navigate to the project directory:
+2. Navigate to the project directory:\n
     cd the_necromancers_grip
 
-3. Run the game
+3. Run the game:\n
     python main.py
