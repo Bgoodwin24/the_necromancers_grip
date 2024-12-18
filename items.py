@@ -78,13 +78,12 @@ class Items:
             else:
                 screen.blit(self.scaled_image, self.rect.topleft)
         else:
-            # Don't draw the item after it's collected
+            #Don't draw the item after it's collected
             pass
     
     def collect(self, player):
         if not self.collected and not self.animation_playing:
             self.animation_playing = True
-            print("Animation started for food.")
             player.heal(self.heal_amount)
             self.finished_animation = False
 

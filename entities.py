@@ -4,7 +4,6 @@ import json
 from constants import *
 import os
 
-#Just for if there were other player classes to choose from
 class Entity:
     def __init__(self, json_path, radius, scale_factor=4):
         self.velocity = pygame.Vector2(0, 0)
@@ -105,7 +104,7 @@ class Entity:
                 frame_duration = self.scaled_frames[self.current_frame][1]
 
 
-        # Update the current frame based on the animation time
+        #Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]
@@ -175,7 +174,6 @@ class Entity:
                 return True
         return False
 
-#Actual player class for this game
 class Rogue(Entity):
     def __init__(self, json_path, x_pos=0, y_pos=0):
         super().__init__(json_path, PLAYER_RADIUS)
@@ -195,7 +193,7 @@ class Rogue(Entity):
         self.position = pygame.Vector2(x_pos, y_pos)
         self.attack_start_position = self.position.copy()
 
-        # Initial frame size setup
+        #Initial frame size setup
         if self.scaled_frames:
             frame_surface = self.scaled_frames[self.current_frame][0]
             self.frame_width = frame_surface.get_width()
@@ -231,15 +229,15 @@ class Rogue(Entity):
         self.is_moving = False
         self.attack_cooldown -= dt
 
-        # Lock position during attack or damaged state
+        #Lock position during attack or damaged state
         if self.is_damaged:
             return x_pos, y_pos
         
-        # Lock position during attack state
+        #Lock position during attack state
         if self.is_attacking:
             return x_pos, y_pos
 
-        # Left movement
+        #Left movement
         if keys[pygame.K_a]:
             self.is_moving = True
             if self.alive:
@@ -247,7 +245,7 @@ class Rogue(Entity):
                     self.switch_animation("Run Left", "Images/PNGs/Small rogue animations-Small Run left.json")
                 new_x_pos -= movement_speed * dt
     
-        # Right movement
+        #Right movement
         if keys[pygame.K_d]:
             self.is_moving = True
             if self.alive:
@@ -255,13 +253,13 @@ class Rogue(Entity):
                     self.switch_animation("Run", "Images/PNGs/Small rogue animations-Small Run.json")
                 new_x_pos += movement_speed * dt
 
-        # Switch to idle if not moving
+        #Switch to idle if not moving
         if self.alive and not self.is_dying:
             if not self.is_moving and not self.is_attacking and not self.is_damaged:
                 if self.current_animation != "Idle":
                     self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
         
-        # Handle attack logic
+        #Handle attack logic
         if keys[pygame.K_SPACE] and self.attack_cooldown <= 0 and not self.is_attacking and not self.is_damaged:
             self.is_attacking = True
             self.projectile_spawned = False
@@ -272,13 +270,13 @@ class Rogue(Entity):
                 self.switch_animation("Attack", "Images/PNGs/Small projectile-Attack.json")
             self.attack_cooldown = 0.5
 
-        # Check collision
+        #Check collision
         if not self.check_collision(pygame.Rect(new_x_pos, y_pos, self.frame_width, self.frame_height), colliders):
             x_pos = new_x_pos
         if not self.check_collision(pygame.Rect(x_pos, new_y_pos, self.frame_width, self.frame_height), colliders):
             y_pos = new_y_pos
 
-        # Update actual position in the rogue object
+        #Update actual position in the rogue object
         self.set_position(x_pos, y_pos)
 
         return x_pos, y_pos
@@ -314,22 +312,22 @@ class Rogue(Entity):
                 self.is_invincible = False
                 self.invincibility_timer = 0
 
-        # Death animation trigger
+        #Death animation trigger
         if self.health == 0 and not self.is_dying:
             self.is_dying = True
             self.current_frame = 0
             self.death_position = self.position.x - 100, self.position.y - 20
             self.switch_animation("Death", "Images/PNGs/Rogue-Death.json")
 
-        # Handle death animation progression (Stop after last frame)
+        #Handle death animation progression (Stop after last frame)
         if self.is_dying:
             if self.current_frame >= len(self.scaled_frames) - 1:
                 self.alive = False
             else:
                 self.current_frame += 1
-            return  # Stop animation progress for death animation
+            return  #Stop animation progress for death animation
 
-        # Handle damaged animation
+        #Handle damaged animation
         if self.is_damaged and not self.is_dying:
             if not self.has_played_damaged_animation:
                 self.has_played_damaged_animation = True
@@ -339,7 +337,7 @@ class Rogue(Entity):
                 self.is_damaged = False  # Unlock damaged state
                 self.has_played_damaged_animation = False
 
-                # Switch back to idle only after animation finishes
+                #Switch back to idle only after animation finishes
                 if not self.is_attacking and not self.is_moving:
                     self.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
                 elif self.is_moving:
@@ -347,7 +345,7 @@ class Rogue(Entity):
                 elif self.is_attacking:
                     self.switch_animation("Attack", "Images/PNGs/Small rogue animations-Small Attack.json")
 
-        # Handle attack logic and reset after attack
+        #Handle attack logic and reset after attack
         if self.is_attacking and not self.is_dying:
             if self.current_frame == 5 and not self.projectile_spawned:
                 attack_x, attack_y = self.get_attack_position(None)
@@ -364,12 +362,12 @@ class Rogue(Entity):
                     attack_x, attack_y = self.get_attack_position(None)
                     self.spawn_projectiles(attack_x, attack_y)
 
-        # Regular animation logic for other states
+        #Regular animation logic for other states
         if self.current_frame >= len(self.scaled_frames):
             if self.current_animation != "Damaged" and not self.is_dying:
                 self.current_frame = 0
 
-        # Update projectiles
+        #Update projectiles
         for projectile in self.projectiles:
             projectile.update(dt)
             if not projectile.alive:
@@ -406,8 +404,8 @@ class Rogue(Entity):
             self.current_frame = 0
         self.target_health -= damage_amount
         self.target_health = max(0, self.target_health)
-        print(f"Rogue took {damage_amount} damage. Health: {self.health}")
-        if self.health == 0:
+        if not self.alive:
+            print(f"Oh no! {self.__class__.__name__} has died!")
             print("Game over, better luck next time!")
 
     def get_rect(self):
@@ -534,7 +532,7 @@ class Skeleton(Entity):
             self.position.y += 75
             frame_surface, _ = self.scaled_frames[self.current_frame]
 
-        # If attacking, use stored attack position
+        #If attacking, use stored attack position
         if self.current_animation in ["Attack", "Attack Right"]:
             self.position.x + 90
             self.position.y - 75
@@ -553,14 +551,14 @@ class Skeleton(Entity):
             self.invincibility_timer = 0
             self.current_frame = 0
         self.health -= damage_amount
-        # Ensure health never goes below zero
+        #Ensure health never goes below zero
         self.health = max(0, self.health)
 
         if self.is_dying:
             return
         
         if self.health > 0:
-            # Switch to damaged animation if still alive
+            #Switch to damaged animation if still alive
             if self.facing_direction == "Left" and self.current_animation != "Damaged":
                 self.switch_animation("Damaged", "Images/PNGs/Small Skeleton-Damaged.json")
             elif self.facing_direction == "Right" and self.current_animation != "Damaged Right":
@@ -568,11 +566,10 @@ class Skeleton(Entity):
             
             self.damage_pending = True
         else:
-            # If health is zero, immediately switch to the death animation
+            #If health is zero, immediately switch to the death animation
             if self.current_animation != "Death" and not self.is_dying:
                 self.is_dying = True
                 self.switch_animation("Death", "Images/PNGs/Skeleton-Death.json")
-                print("Skeleton has died, starting death animation.")
         if self.is_attacking:
             self.damage_pending = True
 
@@ -623,7 +620,7 @@ class Skeleton(Entity):
         else:
             print(f"Invalid frame dimensions: width={frame_width}, height={frame_height}")
         
-        # Update actual position in the skeleton object
+        #Update actual position in the skeleton object
         self.set_position(x_pos, y_pos)
 
         return x_pos, y_pos
@@ -649,7 +646,6 @@ class Skeleton(Entity):
         if not player.alive or player.current_animation == "Death" or player.is_dying:
             self.is_attacking = False
             self.switch_animation("Idle", "Images/PNGs/Skeleton-Idle.json")
-            print(f"Rogue is dead, Skeleton switching to {self.current_animation}, {self.current_frame}/{len(self.scaled_frames) - 1}")
         
         #Stop from walking through player
         if abs(distance) <= attack_range:
@@ -694,10 +690,6 @@ class Skeleton(Entity):
         self.is_dying = False
         self.is_damaged = False
         self.current_animation = "Idle"
-                
-    #def cleanup(self):
-        #if self in self.level.enemies:
-            #self.level.enemies.remove(self)
 
 class Spirit(Entity):
     def __init__(self, json_path, x_pos=0, y_pos=0):
@@ -781,7 +773,7 @@ class Spirit(Entity):
                     self.die("Death", "Images/PNGs/Small Spirit-Death.json")
             return
         
-        # Handle attack logic and reset after attack
+        #Handle attack logic and reset after attack
         if self.is_attacking:
             if self.current_frame == 4 and not self.projectile_spawned:
                 attack_x, attack_y = self.get_attack_position(None)
@@ -793,10 +785,9 @@ class Spirit(Entity):
                 self.is_attacking = False
                 self.switch_animation("Idle", "Images/PNGs/Small Spirit-Idle.json")
         
-        # Update projectiles
+        #Update projectiles
         for projectile in self.projectiles:
             projectile.update(dt)
-            print(f"Projectile at ({projectile.get_rect})")
             if not projectile.alive:
                 self.projectiles.remove(projectile)
 
@@ -829,7 +820,7 @@ class Spirit(Entity):
             self.position.y
             frame_surface, _ = self.scaled_frames[self.current_frame]
 
-        # If attacking, use stored attack position
+        #If attacking, use stored attack position
         if self.current_animation in ["Attack", "Attack Right"]:
             self.position.x + 90
             self.position.y - 75
@@ -848,11 +839,11 @@ class Spirit(Entity):
             self.invincibility_timer = 0
             self.current_frame = 0
         self.health -= damage_amount
-        # Ensure health never goes below zero
+        #Ensure health never goes below zero
         self.health = max(0, self.health)
         
         if self.health > 0:
-            # Switch to damaged animation if still alive
+            #Switch to damaged animation if still alive
             if self.facing_direction == "Left" and self.current_animation != "Damaged":
                 self.switch_animation("Damaged", "Images/PNGs/Small Spirit-Damaged.json")
             elif self.facing_direction == "Right" and self.current_animation != "Damaged Right":
@@ -860,11 +851,10 @@ class Spirit(Entity):
             
             self.damage_pending = True
         else:
-            # If health is zero, immediately switch to the death animation
+            #If health is zero, immediately switch to the death animation
             if self.current_animation != "Death" and not self.is_dying:
                 self.is_dying = True
                 self.switch_animation("Death", "Images/PNGs/Small Spirit-Death.json")
-                print("Skeleton has died, starting death animation.")
         if self.is_attacking:
             self.damage_pending = True
 
@@ -915,7 +905,7 @@ class Spirit(Entity):
         else:
             print(f"Invalid frame dimensions: width={frame_width}, height={frame_height}")
         
-        # Update actual position in the spirit object
+        #Update actual position in the spirit object
         self.set_position(x_pos, y_pos)
 
         return x_pos, y_pos
@@ -929,7 +919,6 @@ class Spirit(Entity):
                 self.alive = True
                 self.projectiles.append(projectile)
                 self.projectile_spawned = True
-                print(f"Spawned projectile at ({projectile.get_rect}) with velocity {velocity}")
             elif self.current_animation == "Attack Right":
                 velocity = pygame.Vector2(500, 0)
                 proj_path = "Images/PNGs/Small Spirit Projectile-Projectile Right.json"
@@ -937,7 +926,6 @@ class Spirit(Entity):
                 self.alive = True
                 self.projectiles.append(projectile)
                 self.projectile_spawned = True
-                print(f"Spawned projectile right at ({projectile.get_rect}) with velocity {velocity}")
 
             self.projectile_spawned = False
             if not self.is_attacking:
@@ -962,7 +950,6 @@ class Spirit(Entity):
         if not player.alive or player.current_animation == "Death" or player.is_dying:
             self.is_attacking = False
             self.switch_animation("Idle", "Images/PNGs/Small Spirit-Idle.json")
-            print(f"Rogue is dead, Spirit switching to {self.current_animation}, {self.current_frame}/{len(self.scaled_frames) - 1}")
             
         #Stop from walking through player
         if abs(distance) <= attack_range:
@@ -1011,10 +998,6 @@ class Spirit(Entity):
         self.is_dying = False
         self.is_damaged = False
         self.current_animation = "Idle"
-        
-    #def cleanup(self):
-        #if self in self.level.enemies:
-            #self.level.enemies.remove(self)
 
 class Arrow(Entity):
     def __init__(self, json_path, x=1500, y=350):
@@ -1033,7 +1016,7 @@ class Arrow(Entity):
             screen.blit(frame_surface, (self.x, self.y))
     
     def update(self, dt):
-        # Update the current frame based on the animation time
+        #Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]
@@ -1098,7 +1081,7 @@ class EndText(Entity):
             screen.blit(frame_surface, (self.x, self.y))
     
     def update(self, dt):
-        # Update the current frame based on the animation time
+        #Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]

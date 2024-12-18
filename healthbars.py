@@ -54,7 +54,7 @@ class HealthBar:
     def update(self, dt):
         pass
 
-        # Update the current frame based on the animation time
+        #Update the current frame based on the animation time
         if self.scaled_frames:
             self.current_time += dt * 1000
             frame_duration = self.scaled_frames[self.current_frame][1]

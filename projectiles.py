@@ -72,12 +72,10 @@ class Projectile:
         
     def check_colliders(self, colliders):
         projectile_rect = self.get_rect()
-        print(f"Projectile rect: {projectile_rect}")
         for name, collider in colliders.values():
-            if self.category == "friendly" and name == "spirit":  # Rogue projectile hitting spirit
+            if self.category == "friendly" and name == "spirit":  #Rogue projectile hitting spirit
                 if projectile_rect.colliderect(collider):
                     self.alive = False
-                    print(f"Collision detected with {name}")
                     return True
         return False
     
@@ -188,12 +186,10 @@ class SpiritProjectile(Projectile):
         
     def check_colliders(self, colliders):
         projectile_rect = self.get_rect()
-        print(f"Projectile rect: {projectile_rect}")
         for name, collider in colliders.values():
-            if self.category == "friendly" and name == "spirit":  # Rogue projectile hitting spirit
+            if self.category == "friendly" and name == "spirit":  #Rogue projectile hitting spirit
                 if projectile_rect.colliderect(collider):
                     self.alive = False
-                    print(f"Collision detected with {name}")
                     return True
         return False
     

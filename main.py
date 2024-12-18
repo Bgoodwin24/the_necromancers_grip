@@ -97,7 +97,6 @@ def main():
         print("Warning: scaled_frames not initialized.")
 
     if spirit.scaled_frames:
-        print(f"Drawing Spirit at {spirit.position}")
         spirit.x_pos = (SCREEN_WIDTH * 3 - spirit.scaled_frames[0][0].get_width()) // 2 + 925
         spirit.position.x += 1550
         spirit.y_pos = (SCREEN_HEIGHT * 3 - spirit.scaled_frames[0][0].get_height()) // 2 + 240
@@ -302,7 +301,6 @@ def main():
 
         #Update player postion and rect
         rogue.x_pos, rogue.y_pos = rogue.handle_movement(keys, rogue.x_pos, rogue.y_pos, colliders, dt)
-        print(f"New position: {rogue.x_pos}, {rogue.y_pos}")
         rogue.rect = pygame.Rect(rogue.x_pos, rogue.y_pos, rogue.scaled_frames[0][0].get_width() + 20, rogue.scaled_frames[0][0].get_height())
         #Update skeleton rect after its position has been set
         skeleton.rect = pygame.Rect(skeleton.position.x, skeleton.position.y, skeleton.scaled_frames[0][0].get_width(), skeleton.scaled_frames[0][0].get_height())
@@ -327,7 +325,6 @@ def main():
                         if hasattr(target, 'is_skeleton') and target.is_skeleton and target.alive and target.rect.colliderect(projectile_rect):
                             if not projectile.damage_applied:
                                 skeleton.take_damage(rogue.attack)
-                                print(f"Skeleton health: {skeleton.health}/1000")
                                 projectile.damage_applied = True
                             if not projectile.playing_collision_animation:
                                 projectile.switch_attack_animation()
@@ -335,7 +332,6 @@ def main():
                         if hasattr(target, 'is_spirit') and target.is_spirit and target.alive and target.rect.colliderect(projectile_rect):
                             if not projectile.damage_applied:
                                 spirit.take_damage(rogue.attack)
-                                print(f"Spirit health: {spirit.health}/1000")
                                 projectile.damage_applied = True
                             if not projectile.playing_collision_animation:
                                 projectile.switch_attack_animation()
@@ -352,7 +348,6 @@ def main():
                             if not projectile.damage_applied:
                                 rogue.take_damage(spirit.attack)
                                 projectile.damage_applied = True
-                                print(f"Rogue hit by spirit's projectile! Health: {rogue.health}")
                             if not projectile.playing_collision_animation:
                                 projectile.switch_spirit_attack_animation()
                             return True
@@ -367,22 +362,20 @@ def main():
         if rogue.is_dying:
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
             if rogue.current_frame >= len(rogue.scaled_frames) - 1:
-                print("Rogue has finished the Death animation.")
                 rogue.alive = False
                 rogue.is_dying = False
                 rogue.x_pos, rogue.y_pos = rogue.death_position
-                # Don't allow the rogue to continue updating other animations
+                #Don't allow the rogue to continue updating other animations
                 pygame.quit()
                 sys.exit()
 
             if spirit.alive:
-                spirit.update(dt)  # Update spirit even when rogue is dead
+                spirit.update(dt)  #Update spirit even when rogue is dead
                 spirit.draw(screen, spirit.position.x, spirit.position.y, rogue)
         else:
             if rogue.alive and not rogue.is_dying:
                 if rogue.current_animation not in ["Death", "Idle", "Run", "Run Left", "Attack", "Attack Left", "Damaged"]:
                     rogue.switch_animation("Idle", "Images/PNGs/Smaller rogue animations-Smaller Idle.json")
-                    print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
 
         if rogue.current_animation == "Death":
             rogue.rect = pygame.Rect(rogue.position.x, rogue.position.y + 50, rogue.frame_width - 530, rogue.frame_height - 110)
@@ -395,7 +388,7 @@ def main():
         if rogue.current_animation in ["Damaged", "Damaged Left"]:
             rogue.rect = pygame.Rect(rogue.position.x - 42, rogue.position.y + 110, rogue.frame_width - 20, rogue.frame_height - 110)
         
-        # Check if skeleton/spirit are idle and in range to attack
+        #Check if skeleton/spirit are idle and in range to attack
         distance_to_player = skeleton.position.x - rogue.x_pos
         if skeleton.is_attacking:
             attack_damage_frame = 3
@@ -408,12 +401,11 @@ def main():
             
                 if skeleton.current_frame == attack_damage_frame:
                     if rogue.rect and skeleton.rect.colliderect(rogue.rect) and not skeleton.damage_applied:
-                        print("Skeleton hits the rogue!")
                         if skeleton.current_frame == 3:
                             rogue.take_damage(skeleton.attack)
                             skeleton.damage_applied = True
 
-            if skeleton.current_frame == len(skeleton.scaled_frames) - 1:  # End of animation
+            if skeleton.current_frame == len(skeleton.scaled_frames) - 1:  #End of animation
                 skeleton.is_attacking = False
                 skeleton.damage_applied = False
 
@@ -428,12 +420,11 @@ def main():
 
                 if spirit.current_frame == attack_damage_frame:
                     if rogue.rect and spirit.rect.colliderect(rogue.rect) and not spirit.damage_applied:
-                        print("Spirit hits the rogue!")
                         if spirit.current_frame == 4:
                             rogue.take_damage(spirit.attack)
                             spirit.damage_applied = True
 
-            if spirit.current_frame == len(spirit.scaled_frames) - 1:  # End of animation
+            if spirit.current_frame == len(spirit.scaled_frames) - 1:  #End of animation
                 spirit.is_attacking = False
                 spirit.damage_applied = False
 
@@ -472,12 +463,11 @@ def main():
             
                 if skeleton2.current_frame == attack_damage_frame:
                     if rogue.rect and skeleton2.rect.colliderect(rogue.rect) and not skeleton2.damage_applied:
-                        print("Skeleton hits the rogue!")
                         if skeleton2.current_frame == 3:
                             rogue.take_damage(skeleton2.attack)
                             skeleton2.damage_applied = True
 
-            if skeleton2.current_frame == len(skeleton2.scaled_frames) - 1:  # End of animation
+            if skeleton2.current_frame == len(skeleton2.scaled_frames) - 1:  #End of animation
                 skeleton2.is_attacking = False
                 skeleton2.damage_applied = False
 
@@ -510,44 +500,40 @@ def main():
         for projectile in all_projectiles:
             projectile.update(dt)
             projectile.draw(screen)
-            # Check if the projectile is already marked as "damage applied"
+            #Check if the projectile is already marked as "damage applied"
             if projectile.damage_applied:
-                continue  # Skip the rest of the loop if damage is already applied
+                continue  #Skip the rest of the loop if damage is already applied
 
-            # Handle collision and damage application
+            #Handle collision and damage application
             if check_collision(projectile, skeleton):
-                if projectile.category == "friendly":  # If projectile is friendly and hits skeleton
+                if projectile.category == "friendly":  #If projectile is friendly and hits skeleton
                     projectile.position.x = skeleton.position.x - 80
                     skeleton.take_damage(rogue.attack)
-                    print(f"Skeleton hit by friendly projectile! Health: {skeleton.health}")
                     projectile.damage_applied = True
-                    continue  # Once damage is applied, skip further processing
+                    continue  #Once damage is applied, skip further processing
 
             if check_collision(projectile, skeleton2):
-                if projectile.category == "friendly":  # If projectile is friendly and hits skeleton
+                if projectile.category == "friendly":  #If projectile is friendly and hits skeleton
                     projectile.position.x = skeleton2.position.x - 80
                     skeleton2.take_damage(rogue.attack * 2)
-                    print(f"Skeleton hit by friendly projectile! Health: {skeleton2.health}")
                     projectile.damage_applied = True
-                    continue  # Once damage is applied, skip further processing
+                    continue  #Once damage is applied, skip further processing
 
             if check_collision(projectile, spirit):
-                if projectile.category == "friendly":  # If projectile is friendly and hits spirit
+                if projectile.category == "friendly":  #If projectile is friendly and hits spirit
                     projectile.position.x = spirit.position.x - 80
                     spirit.take_damage(rogue.attack)
-                    print(f"Spirit hit by friendly projectile! Health: {spirit.health}")
                     projectile.damage_applied = True
-                    continue  # Once damage is applied, skip further processing
+                    continue  #Once damage is applied, skip further processing
 
-            # For enemy projectiles, handle the rogue's health
+            #For enemy projectiles, handle the rogue's health
             if projectile.category == "enemy" and isinstance(projectile, SpiritProjectile):
                 if check_collision(projectile, rogue):
-                    if rogue.is_invincible:  # Skip damage if rogue is invincible
+                    if rogue.is_invincible:  #Skip damage if rogue is invincible
                         continue
                     rogue.take_damage(spirit.attack)
-                    print(f"Rogue hit by spirit's projectile! Health: {rogue.health}")
                     projectile.damage_applied = True
-                    continue  # Once damage is applied, skip further processing
+                    continue  #Once damage is applied, skip further processing
 
 
             #Mark for removal if not alive
@@ -603,7 +589,7 @@ def main():
                     skeleton.draw(screen, skeleton.position.x, skeleton.position.y, rogue)
                     skeleton.handle_ai(rogue, rogue.position, dt, rogue.rect)
                 else:
-                    # Skeleton should stop animating or move to idle after rogue's death
+                    #Skeleton should stop animating or move to idle after rogue's death
                     skeleton.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
                     skeleton.update(dt)
                     skeleton.draw(screen, skeleton.position.x, skeleton.position.y, rogue)
@@ -615,7 +601,7 @@ def main():
                     skeleton2.draw(screen, skeleton2.position.x, skeleton2.position.y, rogue)
                     skeleton2.handle_ai(rogue, rogue.position, dt, rogue.rect)
                 else:
-                    # Skeleton should stop animating or move to idle after rogue's death
+                    #Skeleton should stop animating or move to idle after rogue's death
                     skeleton2.switch_animation("Idle", "Images/PNGs/Skeleton Walk Right-Small Idle Left.json")
                     skeleton2.update(dt)
                     skeleton2.draw(screen, skeleton2.position.x, skeleton2.position.y, rogue)
@@ -629,7 +615,6 @@ def main():
                 else:
                     pass
         if rogue.is_dying or rogue.alive:
-            print(f"Rogue Animation: {rogue.current_animation}, Frame: {rogue.current_frame}/{len(rogue.scaled_frames) - 1}")
             rogue.update(dt)
             rogue.draw(screen, rogue.x_pos, rogue.y_pos)
             advanced_rogue_health(rogue)
@@ -646,17 +631,9 @@ def main():
             end_text.update(dt)
             end_text.draw(screen)
 
-        print(f"Transitioning levels: {transitioning}")
-        print(f"Rogue position: {rogue.x_pos}, {rogue.y_pos}")
-        print(f"Rogue rect: {rogue.rect}")
-        print(f"Right wall rect: {right_wall.rect}")
-        print(f"Collision: {rogue.rect.colliderect(right_wall.rect)}")
-        print(f"Can pass: {can_pass()}")
-        print(f"Enemy list: {enemy_list}")
-
         if current_level == last_level:
             if spirit.alive and skeleton not in enemy_list and skeleton2 not in enemy_list:
-                if spawn_timer is None:  # Start the timer if not already started
+                if spawn_timer is None:  #Start the timer if not already started
                     spawn_timer = pygame.time.get_ticks()
                 
                 elapsed_time = pygame.time.get_ticks() - spawn_timer
@@ -680,12 +657,11 @@ def main():
 
         #Check if player is near right wall to pass to next screen
         if can_pass() and rogue.is_moving and rogue.rect.colliderect(right_wall.rect):
-            print("Ready to transition")
             if not transitioning:
                 transitioning = True
                 transition_timer = pygame.time.get_ticks()
 
-        # Handle level transition
+        #Handle level transition
         if transitioning:
             elapsed_time = pygame.time.get_ticks() - transition_timer
             if elapsed_time > 250:
@@ -705,7 +681,7 @@ def main():
 
                 right_wall.rect = RightWall(current_level).rect
 
-                # Reset rogue's position
+                #Reset rogue's position
                 rogue.x_pos = (SCREEN_WIDTH * 3 - rogue.scaled_frames[0][0].get_width()) // 2 - 830
                 rogue.y_pos = (SCREEN_HEIGHT * 3 - rogue.scaled_frames[0][0].get_height()) // 2 + 198
                 rogue.rect = pygame.Rect(
@@ -727,12 +703,12 @@ def main():
                     spirit.y_pos = (SCREEN_HEIGHT * 3 - spirit.scaled_frames[0][0].get_height()) // 2 + 240
                         
             else:
-                # Screen fades to black during transition
+                #Screen fades to black during transition
                 screen.fill((0, 0, 0))
                 pygame.display.flip()
-                continue  # Skip the rest of the loop during transition
+                continue  #Skip the rest of the loop during transition
 
-        # Check if the player can transition
+        #Check if the player can transition
         if not transitioning:
             if can_pass() and rogue.rect.colliderect(right_wall.rect):
                 transitioning = True
