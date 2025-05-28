@@ -1,18 +1,33 @@
-# Custom License
-Copyright 2024 Billy Goodwin
+Creative Commons Attribution-NonCommercial 4.0 International
 
-Permission is hereby granted to any person obtaining a copy of this game and associated assets (the "Game") to use, play, and share the Game in its unmodified form.
+==================================================================
 
-For clarity, "assets" refers to any sprites, images, animations, or other creative works included in the Game.
+By using or contributing to this software, you agree to the terms
+of the Creative Commons Attribution-NonCommercial 4.0 International
+license (“CC BY-NC 4.0”).
 
-## You may:
-- Use the Game for personal enjoyment.
-- Share the unmodified Game with others.
+You are free to:
 
-## You may not:
-- Modify, merge, or create derivative works based on the Game.
-- Publish, distribute, sublicense, or sell the Game or any of its components (code, assets, or otherwise).
-- Extract or reuse the assets for any purpose outside of the Game.
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material
 
-## Liability:
-The Game is provided "as is," without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, or non-infringement.
+Under the following terms:
+
+- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+  You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+
+- NonCommercial — You may not use the material for commercial purposes.
+
+No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+
+==================================================================
+
+This is a human-readable summary of (and not a substitute for) the license.
+
+For the full license text, visit:
+
+https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+==================================================================
+
+(c) 2025 Bgoodwin24
